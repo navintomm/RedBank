@@ -1,20 +1,35 @@
 ---
-name: Feature request
-about: Suggest an idea for this project
-title: '[FEAT] '
-labels: enhancement
+name: Feature Request
+about: Suggest an idea for a new feature in Red Bank
+title: '[FEATURE] '
+labels: 'enhancement, feature-request, needs-design'
 assignees: ''
-
 ---
 
-**Is your feature request related to a problem? Please describe.**
-A clear and concise description of what the problem is. Ex. I'm always frustrated when [...]
+## 💡 Feature Description
+A clear and concise description of what the feature is and the problem it solves.
 
-**Describe the solution you'd like**
-A clear and concise description of what you want to happen.
+## 🤔 Problem Statement
+What problem does this feature solve? Ex: "I'm always frustrated when..."
 
-**Describe alternatives you've considered**
+## 🎯 Proposed Solution
+A clear and concise description of what you want to happen. Describe the new functionality, UI changes, or backend logic required.
+
+## 🔄 Alternatives Considered
 A clear and concise description of any alternative solutions or features you've considered.
 
-**Additional context**
-Add any other context or screenshots about the feature request here.
+## 📸 Mockups / Screenshots
+If applicable, add wireframes, mockups, or sketches showing the proposed UI.
+
+## ⚡ Priority
+- [ ] Nice to have (Quality of life improvement)
+- [ ] Important (Significant value add for donors/requesters)
+- [ ] Critical (Necessary for core platform operations)
+
+## ✅ Pre-flight Checklist
+- [ ] I have read the `CONTRIBUTING.md` guidelines.
+- [ ] I have checked the `13_DevelopmentRoadmap.md` to see if this is already planned.
+- [ ] I have searched existing issues to ensure this feature hasn't already been requested.
+
+## 📝 Additional Context
+Add any other context or requirements about the feature request here.
