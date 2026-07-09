@@ -1,0 +1,62 @@
+# ==========================
+# Java / Spring Boot
+# ==========================
+backend/target/
+*.class
+*.jar
+*.war
+*.log
+
+# ==========================
+# Maven
+# ==========================
+.mvn/
+.mvn/wrapper/maven-wrapper.jar
+
+# ==========================
+# IntelliJ
+# ==========================
+.idea/
+*.iml
+
+# ==========================
+# VS Code
+# ==========================
+.vscode/
+
+# ==========================
+# Flutter
+# ==========================
+frontend/.dart_tool/
+frontend/.flutter-plugins
+frontend/.flutter-plugins-dependencies
+frontend/build/
+frontend/.packages
+
+# Keep pubspec.lock for Flutter apps
+# frontend/pubspec.lock
+
+# ==========================
+# Android
+# ==========================
+frontend/android/.gradle/
+frontend/android/local.properties
+
+# ==========================
+# iOS
+# ==========================
+frontend/ios/Pods/
+frontend/ios/.symlinks/
+
+# ==========================
+# Environment Files
+# ==========================
+.env
+*.env
+application-secret.yml
+
+# ==========================
+# OS Files
+# ==========================
+.DS_Store
+Thumbs.db
