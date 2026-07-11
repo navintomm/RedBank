@@ -7,6 +7,13 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2026-07-11
+### Added
+- **Donor Module Finalization**: Completed frontend-backend integration for Donor Profile creation, updates, and availability status.
+- **Environment Stabilization**: Isolated Maven build directory to resolve IDE-Compiler background caching conflicts (Java 17/21).
+- **Frontend Refactoring**: Refactored Donor Profile screens to use `SingleChildScrollView` for proper form validation lifecycle.
+- **Verification Pipeline**: Integrated automated `mvn verify` and `flutter test` pipelines into release verification strategy.
+
 ## [1.0.0] - TBD
 ### Planned
 - **Production Release**: Full platform launch including iOS App Store and Google Play deployments.
