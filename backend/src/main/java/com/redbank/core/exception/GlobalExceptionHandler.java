@@ -32,6 +32,18 @@ public class GlobalExceptionHandler {
                 .body(ApiResponse.error("Access denied."));
     }
 
+    @ExceptionHandler(DonorNotFoundException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDonorNotFoundException(DonorNotFoundException ex) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
+    @ExceptionHandler(DonorValidationException.class)
+    public ResponseEntity<ApiResponse<Void>> handleDonorValidationException(DonorValidationException ex) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST)
+                .body(ApiResponse.error(ex.getMessage()));
+    }
+
     @ExceptionHandler(MethodArgumentNotValidException.class)
     public ResponseEntity<ApiResponse<Map<String, String>>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();

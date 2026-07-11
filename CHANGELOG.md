@@ -18,10 +18,16 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 - **Matching Engine**: Core spatial querying and heuristic scoring algorithms.
 - **Maps Integration**: Location visualization and boundary expansion logic.
 
-## [0.2.0] - TBD
-### Planned
-- **Donor Module**: Donor profiles, biological data (blood type, weight), availability toggles, and donation history.
-- Trust Score baseline integration.
+## [0.2.0] - 2026-07-09
+### Added
+- **Donor Module**: Complete end-to-end Donor Profile management.
+  - Database schema (`V3__Donor_Module.sql`) with PostGIS geometries, check constraints, and triggers.
+  - Spring Boot backend services for Location, Availability, and Eligibility validation.
+  - Flutter frontend Donor Profile Screen, Edit Profile, and Location Picker (Google Maps & Geolocator).
+  - Availability Toggle with Cooldown locking logic.
+  - Profile Image upload to Cloudinary with cropping and compression.
+  - Robust Riverpod state management and comprehensive test suite.
+- **Design System**: Centralized Material 3 theming (`app_colors`, `app_spacing`, `app_typography`).
 
 ## [0.1.0] - 2026-07-09
 ### Added

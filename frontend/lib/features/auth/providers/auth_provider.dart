@@ -1,6 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:firebase_auth/firebase_auth.dart' as firebase;
-import '../../core/storage/secure_token_storage.dart';
+import '../../../core/storage/secure_token_storage.dart';
 import '../data/auth_repository.dart';
 
 enum AuthStatus { initial, authenticated, unauthenticated, loading, error }
@@ -28,7 +28,7 @@ class AuthNotifier extends StateNotifier<AuthState> {
     state = AuthState.loading();
     try {
       final idToken = await user.getIdToken();
-      if (idToken == null) throw Exception("Failed to retrieve Firebase Token");
+      if (idToken == null) throw Exception('Failed to retrieve Firebase Token');
 
       final authResponse = await _repository.verifyToken(idToken);
       

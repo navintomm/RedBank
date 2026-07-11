@@ -21,18 +21,25 @@ dependencies:
   firebase_messaging: ^14.7.9
   
   # Maps & Location
-  google_maps_flutter: ^2.5.3
-  geolocator: ^10.1.0
+  google_maps_flutter: ^2.10.1
+  geolocator: ^12.0.0
   
   # UI Utilities
   google_fonts: ^6.1.0
   flutter_svg: ^2.0.9
+  geocoding: ^4.0.0
+  image_picker: ^1.1.2
+  image_cropper: ^10.0.0+1
+  flutter_image_compress: ^2.4.0
+  cached_network_image: ^3.4.1
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
   flutter_lints: ^3.0.1
   build_runner: ^2.4.8
+  mocktail: ^1.0.5
+  network_image_mock: ^2.1.1
 
 flutter:
   uses-material-design: true

@@ -1,5 +1,10 @@
-import 'package:flutter/material.';
+import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import 'core/theme/app_theme.dart';
+import 'features/donor/presentation/availability_settings_screen.dart';
+import 'features/donor/presentation/donor_profile_screen.dart';
+import 'features/donor/presentation/edit_donor_profile_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -16,13 +21,49 @@ class RedBankApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       title: 'Red Bank',
-      theme: ThemeData(
-        colorScheme: ColorScheme.fromSeed(seedColor: const Color(0xFFD32F2F)),
-        useMaterial3: true,
-      ),
-      home: const Scaffold(
-        body: Center(
-          child: Text('Red Bank V1 - Bootstrapped'),
+      theme: AppTheme.lightTheme,
+      darkTheme: AppTheme.darkTheme,
+      themeMode: ThemeMode.system,
+      home: const DebugHomeScreen(),
+    );
+  }
+}
+
+class DebugHomeScreen extends StatelessWidget {
+  const DebugHomeScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: AppBar(title: const Text('Red Bank - Dev Navigation')),
+      body: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const DonorProfileScreen()),
+              ),
+              child: const Text('View Donor Profile Screen'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditDonorProfileScreen()),
+              ),
+              child: const Text('View Edit Profile Screen'),
+            ),
+            const SizedBox(height: 16),
+            ElevatedButton(
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const AvailabilitySettingsScreen()),
+              ),
+              child: const Text('View Availability Settings Screen'),
+            ),
+          ],
         ),
       ),
     );

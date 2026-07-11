@@ -1,4 +1,4 @@
-import 'package:flutter/material.';
+import 'package:flutter/material.dart';
 
 class WelcomeScreen extends StatelessWidget {
   const WelcomeScreen({super.key});

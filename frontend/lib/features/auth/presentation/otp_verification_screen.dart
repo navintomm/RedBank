@@ -1,4 +1,4 @@
-import 'package:flutter/material.';
+import 'package:flutter/material.dart';
 
 class OtpVerificationScreen extends StatelessWidget {
   final String verificationId;
