@@ -7,6 +7,15 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+### Added
+- **Emergency Workflow Backend**: Completed Phase 4 backend foundation and integration verification.
+  - Designed `V4__Emergency_Request_Module.sql` schema with PostGIS support and audit trails.
+  - Implemented core Spring State Machine (`DRAFT` to `COMPLETED`) with `@Version` Optimistic Locking, `TransitionValidators`, and async `Actions`.
+  - Built isolated cohesive business services (`MatchingService`, `NotificationService`, `RadiusExpansionService`).
+  - Created `EmergencyFacade` orchestrator and Jakarta-validated REST APIs (`EmergencyController`).
+  - Implemented full `EmergencyIntegrationTest` suite testing the Database, State Machine, and REST integration.
+  - Generated `EmergencySequenceDiagrams` and `EmergencyAPIExamples` for frontend developers.
+
 ## [0.5.0] - 2026-07-11
 ### Added
 - **Donor Module Finalization**: Completed frontend-backend integration for Donor Profile creation, updates, and availability status.

@@ -2,7 +2,7 @@ spring:
   application:
     name: redbank-backend
   profiles:
-    active: @spring.profiles.active@
+    active: dev
   jackson:
     property-naming-strategy: SNAKE_CASE
 

@@ -1,0 +1,19 @@
+package com.redbank.emergency.statemachine;
+
+public enum EmergencyEvent {
+    CREATE_REQUEST, 
+    START_SEARCH, 
+    DONORS_FOUND, 
+    SEND_NOTIFICATIONS, 
+    DONOR_ACCEPTED, 
+    DONOR_DECLINED, 
+    START_TRAVEL,
+    ARRIVED_AT_LOCATION, 
+    START_DONATION, 
+    COMPLETE_REQUEST, 
+    CANCEL_REQUEST, 
+    REQUEST_EXPIRED, 
+    DONOR_NO_SHOW, 
+    RESTART_SEARCH, 
+    TIMEOUT
+}

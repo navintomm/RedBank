@@ -1,7 +1,0 @@
-com\redbank\donor\service\DonorProfileServiceTest.class
-com\redbank\auth\controller\AuthControllerTest.class
-com\redbank\donor\controller\DonorControllerTest.class
-com\redbank\auth\service\AuthServiceTest.class
-com\redbank\donor\service\EligibilityServiceTest.class
-com\redbank\donor\service\AvailabilityServiceTest.class
-com\redbank\donor\service\LocationServiceTest.class
