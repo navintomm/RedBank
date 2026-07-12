@@ -11,7 +11,10 @@ import lombok.*;
 import org.hibernate.annotations.CreationTimestamp;
 import org.hibernate.annotations.UpdateTimestamp;
 import org.locationtech.jts.geom.Point;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -42,12 +45,15 @@ public class EmergencyRequest {
 
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "blood_group", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "blood_group", nullable = false, columnDefinition = "blood_group_enum")
     private BloodGroup bloodGroup;
 
+    @Builder.Default
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "emergency_type", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "emergency_type", nullable = false, columnDefinition = "emergency_type_enum")
     private EmergencyType emergencyType = EmergencyType.WHOLE_BLOOD;
 
     @Min(1)
@@ -69,27 +75,33 @@ public class EmergencyRequest {
     private String pincode;
 
     @Column(name = "latitude", precision = 10, scale = 8)
-    private Double latitude;
+    private BigDecimal latitude;
 
     @Column(name = "longitude", precision = 11, scale = 8)
-    private Double longitude;
+    private BigDecimal longitude;
 
     @Column(name = "hospital_location", columnDefinition = "geometry(Point,4326)")
     private Point hospitalLocation;
 
+    @Builder.Default
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false, columnDefinition = "emergency_status_enum")
     private EmergencyStatus status = EmergencyStatus.DRAFT;
 
+    @Builder.Default
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "priority", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "priority", nullable = false, columnDefinition = "emergency_priority_enum")
     private EmergencyPriority priority = EmergencyPriority.EMERGENCY;
 
+    @Builder.Default
     @NotNull
     @Enumerated(EnumType.STRING)
-    @Column(name = "source", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "source", nullable = false, columnDefinition = "request_source_enum")
     private RequestSource source = RequestSource.INDIVIDUAL;
 
     @Enumerated(EnumType.STRING)
@@ -100,13 +112,16 @@ public class EmergencyRequest {
     @Column(name = "cancel_reason", length = 512)
     private CancelReason cancelReason;
 
+    @Builder.Default
     @Column(name = "current_search_tier")
     private Integer currentSearchTier = 1;
 
+    @Builder.Default
     @Version
     @Column(name = "version", nullable = false)
     private Integer version = 0;
 
+    @Builder.Default
     @Column(name = "is_deleted")
     private Boolean isDeleted = false;
 

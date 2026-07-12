@@ -44,7 +44,7 @@ void main() {
       final listener = Listener<AsyncValue<DonorProfileDto?>>();
       container.listen(
         donorProfileProvider,
-        listener,
+        listener.call,
         fireImmediately: true,
       );
 

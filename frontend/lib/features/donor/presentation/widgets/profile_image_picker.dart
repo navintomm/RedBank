@@ -95,7 +95,7 @@ class _ProfileImagePickerState extends ConsumerState<ProfileImagePicker> {
       if (croppedFile != null) {
         // Compress image
         final dir = await getTemporaryDirectory();
-        final targetPath = '\${dir.absolute.path}/temp_\${DateTime.now().millisecondsSinceEpoch}.jpg';
+        final targetPath = '${dir.absolute.path}/temp_${DateTime.now().millisecondsSinceEpoch}.jpg';
         
         final XFile? compressedFile = await FlutterImageCompress.compressAndGetFile(
           croppedFile.path, 

@@ -46,11 +46,11 @@ public class RadiusExpansionServiceImpl implements RadiusExpansionService {
     
     private void sendEvent(UUID requestId, EmergencyEvent event) {
         StateMachine<com.redbank.emergency.enums.EmergencyStatus, EmergencyEvent> sm = stateMachineFactory.getStateMachine(requestId.toString());
-        sm.start();
+        sm.startReactively().subscribe();
         Message<EmergencyEvent> message = MessageBuilder.withPayload(event)
                 .setHeader(EmergencyStateMachineConstants.REQUEST_ID_HEADER, requestId)
                 .setHeader(EmergencyStateMachineConstants.ACTOR_TYPE_HEADER, "SYSTEM")
                 .build();
-        sm.sendEvent(message);
+        sm.sendEvent(reactor.core.publisher.Mono.just(message)).subscribe();
     }
 }

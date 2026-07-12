@@ -8,6 +8,8 @@ import org.hibernate.annotations.CreationTimestamp;
 
 import java.time.OffsetDateTime;
 import java.util.UUID;
+import org.hibernate.annotations.JdbcTypeCode;
+import org.hibernate.type.SqlTypes;
 
 @Entity
 @Table(name = "emergency_request_notifications")
@@ -30,8 +32,10 @@ public class EmergencyRequestNotification {
     @JoinColumn(name = "donor_id", nullable = false)
     private User donor;
 
+    @Builder.Default
     @Enumerated(EnumType.STRING)
-    @Column(name = "status", nullable = false)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "status", nullable = false, columnDefinition = "notification_status_enum")
     private NotificationStatus status = NotificationStatus.QUEUED;
 
     @Column(name = "search_tier", nullable = false)

@@ -24,7 +24,7 @@ public interface DonorRepository extends JpaRepository<DonorProfile, UUID> {
     @Query("SELECT d FROM DonorProfile d WHERE d.isDeleted = false " +
            "AND d.bloodGroup = :bloodGroup " +
            "AND d.availabilityStatus = :status " +
-           "AND dwithin(d.location, :point, :distanceMeters) = true")
+           "AND distance(d.location, :point) <= :distanceMeters")
     List<DonorProfile> findAvailableDonorsNearby(
             @Param("bloodGroup") BloodGroup bloodGroup,
             @Param("status") AvailabilityStatus status,

@@ -33,7 +33,7 @@ public class DonorProfile {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "blood_group", nullable = false)
+    @Column(name = "blood_group", nullable = false, columnDefinition = "blood_group_enum")
     private BloodGroup bloodGroup;
 
     @Column(name = "date_of_birth")
@@ -41,6 +41,7 @@ public class DonorProfile {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(columnDefinition = "gender_enum")
     private Gender gender;
 
     @Column(precision = 5, scale = 2)
@@ -67,13 +68,13 @@ public class DonorProfile {
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "availability_status", nullable = false)
+    @Column(name = "availability_status", nullable = false, columnDefinition = "availability_status_enum")
     @Builder.Default
     private AvailabilityStatus availabilityStatus = AvailabilityStatus.UNAVAILABLE;
 
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)
-    @Column(name = "verification_level", nullable = false)
+    @Column(name = "verification_level", nullable = false, columnDefinition = "verification_level_enum")
     @Builder.Default
     private VerificationLevel verificationLevel = VerificationLevel.PHONE_VERIFIED;
 

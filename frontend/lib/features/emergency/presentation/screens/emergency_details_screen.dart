@@ -35,7 +35,7 @@ class _EmergencyDetailsScreenState extends ConsumerState<EmergencyDetailsScreen>
 
   void _cancelRequest() async {
     // In a real app, this might show a dialog asking for cancel reason
-    final success = await ref.read(emergencyNotifierProvider.notifier).cancelRequest(widget.requestId, "NO_LONGER_NEEDED");
+    final success = await ref.read(emergencyNotifierProvider.notifier).cancelRequest(widget.requestId, 'NO_LONGER_NEEDED');
     if (success && mounted) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Request cancelled successfully'), backgroundColor: AppColors.success),

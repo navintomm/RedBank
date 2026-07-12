@@ -1,12 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
-import 'package:geolocator/geolocator.dart';
 
 import '../../../../core/services/location_service.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/primary_button.dart';
-import '../../../../core/widgets/error_state_widget.dart';
 import '../domain/donor_models.dart';
 import '../providers/donor_provider.dart';
 
@@ -20,7 +18,7 @@ class LocationPickerScreen extends ConsumerStatefulWidget {
 class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   GoogleMapController? _mapController;
   LatLng? _selectedLocation;
-  String _currentAddress = "Tap on the map or use your GPS location";
+  String _currentAddress = 'Tap on the map or use your GPS location';
   bool _isLoading = false;
   bool _isSaving = false;
   
@@ -88,7 +86,7 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
   Future<void> _updateAddress(LatLng location) async {
     setState(() {
       _isLoading = true;
-      _currentAddress = "Loading address...";
+      _currentAddress = 'Loading address...';
     });
     
     final locationService = ref.read(locationServiceProvider);
@@ -179,8 +177,6 @@ class _LocationPickerScreenState extends ConsumerState<LocationPickerScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final bool isDark = Theme.of(context).brightness == Brightness.dark;
-
     return Scaffold(
       appBar: AppBar(
         title: const Text('Location Management'),

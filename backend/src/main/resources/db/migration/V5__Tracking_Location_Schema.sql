@@ -1,7 +1,7 @@
 -- V5__Tracking_Location_Schema.sql
 CREATE TABLE tracking_location (
     id UUID PRIMARY KEY,
-    emergency_request_id UUID NOT NULL REFERENCES emergency_requests(id) ON DELETE CASCADE,
+    emergency_request_id UUID NOT NULL REFERENCES emergency_request(id) ON DELETE CASCADE,
     donor_id UUID NOT NULL REFERENCES users(id) ON DELETE CASCADE,
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,

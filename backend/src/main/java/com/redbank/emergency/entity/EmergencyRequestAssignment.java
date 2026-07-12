@@ -38,6 +38,7 @@ public class EmergencyRequestAssignment {
     @Column(name = "actual_arrival")
     private OffsetDateTime actualArrival;
 
+    @Builder.Default
     @Column(name = "is_active", nullable = false)
     private Boolean isActive = true;
 

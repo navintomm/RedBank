@@ -7,6 +7,7 @@ import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
+import java.math.BigDecimal;
 import java.time.OffsetDateTime;
 import java.util.UUID;
 
@@ -28,8 +29,8 @@ public class EmergencyRequestResponseDTO {
     private String hospitalAddress;
     private String city;
     private String pincode;
-    private Double latitude;
-    private Double longitude;
+    private BigDecimal latitude;
+    private BigDecimal longitude;
     
     private EmergencyStatus status;
     private EmergencyPriority priority;

@@ -15,8 +15,6 @@ class AppTheme {
         onSecondary: Colors.white,
         surface: AppColors.surfaceLight,
         onSurface: AppColors.textPrimaryLight,
-        background: AppColors.backgroundLight,
-        onBackground: AppColors.textPrimaryLight,
         error: AppColors.error,
         onError: Colors.white,
       ),
@@ -41,25 +39,25 @@ class AppTheme {
           shape: const RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusMd),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceLight,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.dividerLight),
+          borderSide: BorderSide(color: AppColors.dividerLight),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.dividerLight),
+          borderSide: BorderSide(color: AppColors.dividerLight),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.primary, width: 2),
+          borderSide: BorderSide(color: AppColors.primary, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.error),
+          borderSide: BorderSide(color: AppColors.error),
         ),
       ),
     );
@@ -76,8 +74,6 @@ class AppTheme {
         onSecondary: Colors.black,
         surface: AppColors.surfaceDark,
         onSurface: AppColors.textPrimaryDark,
-        background: AppColors.backgroundDark,
-        onBackground: AppColors.textPrimaryDark,
         error: AppColors.primaryLight, // Slightly lighter error for dark mode
         onError: Colors.black,
       ),
@@ -102,25 +98,25 @@ class AppTheme {
           shape: const RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusMd),
         ),
       ),
-      inputDecorationTheme: InputDecorationTheme(
+      inputDecorationTheme: const InputDecorationTheme(
         filled: true,
         fillColor: AppColors.surfaceDark,
-        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        contentPadding: EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
         border: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.dividerDark),
+          borderSide: BorderSide(color: AppColors.dividerDark),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.dividerDark),
+          borderSide: BorderSide(color: AppColors.dividerDark),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.primaryLight, width: 2),
+          borderSide: BorderSide(color: AppColors.primaryLight, width: 2),
         ),
         errorBorder: OutlineInputBorder(
           borderRadius: AppSpacing.borderRadiusMd,
-          borderSide: const BorderSide(color: AppColors.primaryLight),
+          borderSide: BorderSide(color: AppColors.primaryLight),
         ),
       ),
     );

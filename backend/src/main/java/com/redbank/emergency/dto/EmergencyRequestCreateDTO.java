@@ -10,7 +10,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-
+import jakarta.validation.constraints.DecimalMin;
+import jakarta.validation.constraints.DecimalMax;
+import java.math.BigDecimal;
 import java.util.UUID;
 
 @Data
@@ -27,6 +29,7 @@ public class EmergencyRequestCreateDTO {
     @NotNull(message = "Blood group is required")
     private BloodGroup bloodGroup;
     
+    @Builder.Default
     private EmergencyType emergencyType = EmergencyType.WHOLE_BLOOD;
     
     @Min(value = 1, message = "At least 1 unit is required")
@@ -42,9 +45,14 @@ public class EmergencyRequestCreateDTO {
     
     private String pincode;
     
-    private Double latitude;
+    @DecimalMin("-90.0")
+    @DecimalMax("90.0")
+    private BigDecimal latitude;
     
-    private Double longitude;
+    @DecimalMin("-180.0")
+    @DecimalMax("180.0")
+    private BigDecimal longitude;
     
+    @Builder.Default
     private EmergencyPriority priority = EmergencyPriority.EMERGENCY;
 }

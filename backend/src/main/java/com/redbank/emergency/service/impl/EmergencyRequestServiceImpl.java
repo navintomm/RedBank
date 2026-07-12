@@ -67,7 +67,7 @@ public class EmergencyRequestServiceImpl implements EmergencyRequestService {
 
     private void sendEvent(UUID requestId, EmergencyEvent event, UUID actorId, String actorType) {
         StateMachine<EmergencyStatus, EmergencyEvent> sm = stateMachineFactory.getStateMachine(requestId.toString());
-        sm.start();
+        sm.startReactively().subscribe();
         
         Message<EmergencyEvent> message = MessageBuilder.withPayload(event)
                 .setHeader(EmergencyStateMachineConstants.REQUEST_ID_HEADER, requestId)
@@ -75,6 +75,6 @@ public class EmergencyRequestServiceImpl implements EmergencyRequestService {
                 .setHeader(EmergencyStateMachineConstants.ACTOR_TYPE_HEADER, actorType)
                 .build();
                 
-        sm.sendEvent(message);
+        sm.sendEvent(reactor.core.publisher.Mono.just(message)).subscribe();
     }
 }

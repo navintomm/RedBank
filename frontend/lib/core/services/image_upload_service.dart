@@ -12,7 +12,7 @@ class ImageUploadService {
   // TODO: Replace with your actual Cloudinary Cloud Name and Upload Preset
   static const String _cloudName = 'your_cloud_name_here';
   static const String _uploadPreset = 'your_unsigned_preset_here';
-  static const String _cloudinaryUrl = 'https://api.cloudinary.com/v1_1/\$_cloudName/image/upload';
+  static const String _cloudinaryUrl = 'https://api.cloudinary.com/v1_1/$_cloudName/image/upload';
 
   Future<String> uploadImage({
     required File imageFile,
@@ -36,12 +36,12 @@ class ImageUploadService {
         // Cloudinary returns the secure_url upon successful upload
         return response.data['secure_url'] as String;
       } else {
-        throw Exception('Failed to upload image. Status: \${response.statusCode}');
+        throw Exception('Failed to upload image. Status: ${response.statusCode}');
       }
     } on DioException catch (e) {
-      throw Exception('Network error during upload: \${e.message}');
+      throw Exception('Network error during upload: ${e.message}');
     } catch (e) {
-      throw Exception('Unexpected error during upload: \$e');
+      throw Exception('Unexpected error during upload: $e');
     }
   }
 }

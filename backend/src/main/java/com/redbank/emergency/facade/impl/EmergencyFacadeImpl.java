@@ -81,13 +81,13 @@ public class EmergencyFacadeImpl implements EmergencyFacade {
     
     private void sendEvent(UUID requestId, UUID actorId, EmergencyEvent event) {
         StateMachine<com.redbank.emergency.enums.EmergencyStatus, EmergencyEvent> sm = stateMachineFactory.getStateMachine(requestId.toString());
-        sm.start();
+        sm.startReactively().subscribe();
         Message<EmergencyEvent> message = MessageBuilder.withPayload(event)
                 .setHeader(EmergencyStateMachineConstants.REQUEST_ID_HEADER, requestId)
                 .setHeader(EmergencyStateMachineConstants.DONOR_ID_HEADER, actorId)
                 .setHeader(EmergencyStateMachineConstants.ACTOR_ID_HEADER, actorId)
                 .setHeader(EmergencyStateMachineConstants.ACTOR_TYPE_HEADER, "DONOR")
                 .build();
-        sm.sendEvent(message);
+        sm.sendEvent(reactor.core.publisher.Mono.just(message)).subscribe();
     }
 }

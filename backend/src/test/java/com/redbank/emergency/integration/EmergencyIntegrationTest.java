@@ -8,7 +8,7 @@ import com.redbank.emergency.dto.EmergencyRequestCreateDTO;
 import com.redbank.emergency.enums.EmergencyPriority;
 import com.redbank.emergency.enums.EmergencyType;
 import com.redbank.emergency.repository.EmergencyRequestRepository;
-import com.redbank.emergency.repository.EmergencyRequestHistoryRepository;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -44,8 +44,7 @@ public class EmergencyIntegrationTest {
     @Autowired
     private EmergencyRequestRepository requestRepository;
 
-    @Autowired
-    private EmergencyRequestHistoryRepository historyRepository;
+
 
     private User testRequester;
     private User testDonor;
@@ -73,9 +72,11 @@ public class EmergencyIntegrationTest {
         // 1. Create Request
         EmergencyRequestCreateDTO createDto = new EmergencyRequestCreateDTO();
         createDto.setBloodGroup(com.redbank.donor.entity.BloodGroup.O_POSITIVE);
-        createDto.setLatitude(40.7128);
-        createDto.setLongitude(-74.0060);
+        createDto.setLatitude(java.math.BigDecimal.valueOf(40.7128));
+        createDto.setLongitude(java.math.BigDecimal.valueOf(-74.0060));
         createDto.setHospitalName("City Hospital");
+        createDto.setPatientName("John Doe");
+        createDto.setCity("New York");
         createDto.setUnitsRequired(2);
         createDto.setPriority(EmergencyPriority.EMERGENCY);
         createDto.setEmergencyType(EmergencyType.WHOLE_BLOOD);

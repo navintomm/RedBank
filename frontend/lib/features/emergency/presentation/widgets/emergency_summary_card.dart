@@ -98,7 +98,7 @@ class EmergencySummaryCard extends StatelessWidget {
     
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: AppSpacing.sm, vertical: AppSpacing.xxs),
-      decoration: BoxDecoration(
+      decoration: const BoxDecoration(
         color: AppColors.primary,
         borderRadius: AppSpacing.borderRadiusSm,
       ),

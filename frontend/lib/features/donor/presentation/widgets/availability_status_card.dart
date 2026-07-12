@@ -15,7 +15,7 @@ class AvailabilityStatusCard extends StatelessWidget {
   String _getEligibilityMessage() {
     if (status == 'ON_COOLDOWN' && lastDonationDate != null) {
       final eligibleDate = lastDonationDate!.add(const Duration(days: 90));
-      return "You are currently on a 90-day cooldown period following your last donation. You will be eligible to donate again on \${eligibleDate.year}-\${eligibleDate.month.toString().padLeft(2, '0')}-\${eligibleDate.day.toString().padLeft(2, '0')}.";
+      return "You are currently on a 90-day cooldown period following your last donation. You will be eligible to donate again on ${eligibleDate.year}-${eligibleDate.month.toString().padLeft(2, '0')}-${eligibleDate.day.toString().padLeft(2, '0')}.";
     } else if (status == 'UNAVAILABLE') {
       return 'You are currently marked as unavailable. Emergency requests will not be routed to you.';
     } else if (status == 'AVAILABLE') {

@@ -1,8 +1,8 @@
 spring:
   datasource:
-    url: jdbc:postgresql://localhost:5432/redbank_dev
-    username: redbank_user
-    password: redbank_password
+    url: jdbc:postgresql://localhost:5432/redbank
+    username: postgres
+    password: 6469
     driver-class-name: org.postgresql.Driver
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect

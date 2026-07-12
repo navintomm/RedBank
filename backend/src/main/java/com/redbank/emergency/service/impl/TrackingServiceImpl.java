@@ -103,8 +103,8 @@ public class TrackingServiceImpl implements TrackingService {
 
         // Check if arrived
         if (request.getHospitalLocation() != null || (request.getLatitude() != null && request.getLongitude() != null)) {
-            double destLat = request.getLatitude() != null ? request.getLatitude() : request.getHospitalLocation().getY();
-            double destLng = request.getLongitude() != null ? request.getLongitude() : request.getHospitalLocation().getX();
+            double destLat = request.getLatitude() != null ? request.getLatitude().doubleValue() : request.getHospitalLocation().getY();
+            double destLng = request.getLongitude() != null ? request.getLongitude().doubleValue() : request.getHospitalLocation().getX();
             
             double distanceToHospital = calculateDistance(dto.getLatitude(), dto.getLongitude(), destLat, destLng);
             if (distanceToHospital <= ARRIVAL_THRESHOLD_METERS && request.getStatus() == EmergencyStatus.DONOR_TRAVELLING) {
@@ -193,13 +193,13 @@ public class TrackingServiceImpl implements TrackingService {
     
     private void sendEvent(UUID requestId, UUID donorId, EmergencyEvent event) {
         StateMachine<EmergencyStatus, EmergencyEvent> sm = stateMachineFactory.getStateMachine(requestId.toString());
-        sm.start();
+        sm.startReactively().subscribe();
         Message<EmergencyEvent> message = MessageBuilder.withPayload(event)
                 .setHeader(EmergencyStateMachineConstants.REQUEST_ID_HEADER, requestId)
                 .setHeader(EmergencyStateMachineConstants.DONOR_ID_HEADER, donorId)
                 .setHeader(EmergencyStateMachineConstants.ACTOR_ID_HEADER, donorId)
                 .setHeader(EmergencyStateMachineConstants.ACTOR_TYPE_HEADER, "DONOR")
                 .build();
-        sm.sendEvent(message);
+        sm.sendEvent(reactor.core.publisher.Mono.just(message)).subscribe();
     }
 }

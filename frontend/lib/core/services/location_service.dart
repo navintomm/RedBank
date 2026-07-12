@@ -50,8 +50,8 @@ class LocationService {
         }
       }
     } catch (e) {
-      return "Address not found";
+      return 'Address not found';
     }
-    return "Address not found";
+    return 'Address not found';
   }
 }

@@ -32,7 +32,7 @@ class DonorProfileNotifier extends AsyncNotifier<DonorProfileDto?> {
 
   Future<void> updateAvailability(String status) async {
     // Optimistic update could be implemented here, but we will rely on backend validation
-    final currentData = state.value;
+
     state = const AsyncValue.loading();
     
     state = await AsyncValue.guard(() async {
