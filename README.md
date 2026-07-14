@@ -49,7 +49,7 @@ During a medical crisis, searching for blood relies heavily on unverified, chaot
 ## ⭐ Features
 
 ### MVP Features (V1)
-- **Spatial Matching Engine**: Instant location-based radius queries using `ST_DWithin`.
+- **Spatial Matching Engine**: Instant  location-based radius queries using `ST_DWithin`.
 - **Intelligent Escalation**: Automated radius expansion (5km → 10km → 15km) if requests are not accepted.
 - **Strict Verification**: Four-tier trust system ensuring donor reliability and minimizing fake requests.
 - **Privacy by Design**: Patient data is masked. Phone numbers are hidden until a donor accepts the request.
