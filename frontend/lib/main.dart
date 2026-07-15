@@ -6,10 +6,14 @@ import 'features/donor/presentation/availability_settings_screen.dart';
 import 'features/donor/presentation/donor_profile_screen.dart';
 import 'features/donor/presentation/edit_donor_profile_screen.dart';
 
+import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // TODO: Initialize Firebase
-  // await Firebase.initializeApp();
+  await Firebase.initializeApp(
+    options: DefaultFirebaseOptions.currentPlatform,
+  );
   
   runApp(const ProviderScope(child: RedBankApp()));
 }

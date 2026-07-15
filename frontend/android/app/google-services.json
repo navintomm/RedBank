@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "50759587733",
+    "project_id": "red-bank-65c43",
+    "storage_bucket": "red-bank-65c43.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:50759587733:android:9bf4abf20b2b1ef003489c",
+        "android_client_info": {
+          "package_name": "com.example.frontend"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyA2sv-hOV6NeON31irL6hu0dMFu9V5iq6g"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

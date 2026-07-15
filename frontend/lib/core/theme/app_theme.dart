@@ -3,6 +3,8 @@ import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
 
+typedef CardThemeData = CardTheme;
+
 class AppTheme {
   static ThemeData get lightTheme {
     return ThemeData(
@@ -25,7 +27,7 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: AppColors.surfaceLight,
         elevation: 2,
         margin: EdgeInsets.zero,
@@ -84,7 +86,7 @@ class AppTheme {
         thickness: 1,
         space: 1,
       ),
-      cardTheme: const CardTheme(
+      cardTheme: const CardThemeData(
         color: AppColors.surfaceDark,
         elevation: 2,
         margin: EdgeInsets.zero,
