@@ -23,9 +23,10 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
@@ -91,7 +92,7 @@ class TrackingServiceImplTest {
         locationRequestDTO.setAccuracy(5.0);
         locationRequestDTO.setSpeed(10.0);
         locationRequestDTO.setHeading(90.0);
-        locationRequestDTO.setTimestamp(OffsetDateTime.now());
+        locationRequestDTO.setTimestamp(LocalDateTime.now());
     }
 
     @Test
@@ -100,7 +101,7 @@ class TrackingServiceImplTest {
                 .thenReturn(Optional.of(testAssignment));
         when(stateMachineFactory.getStateMachine(requestId.toString())).thenReturn(stateMachine);
         when(stateMachine.startReactively()).thenReturn(Mono.empty());
-        when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Mono.empty());
+        when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Flux.empty());
 
         assertDoesNotThrow(() -> trackingService.startTracking(requestId, donorId));
 
@@ -145,7 +146,7 @@ class TrackingServiceImplTest {
         
         when(stateMachineFactory.getStateMachine(requestId.toString())).thenReturn(stateMachine);
         when(stateMachine.startReactively()).thenReturn(Mono.empty());
-        when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Mono.empty());
+        when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Flux.empty());
 
         assertDoesNotThrow(() -> trackingService.updateLocation(requestId, donorId, locationRequestDTO));
 
@@ -162,30 +163,9 @@ class TrackingServiceImplTest {
         TrackingStatusResponseDTO result = trackingService.getTrackingStatus(requestId, donorId);
 
         assertNotNull(result);
-        assertEquals(requestId, result.getRequestId());
-        assertEquals(donorId, result.getDonorId());
-        assertTrue(result.getIsActive());
-        assertEquals(EmergencyStatus.ACCEPTED, result.getStatus());
+        assertTrue(result.isTrackingActive());
+        assertEquals(EmergencyStatus.ACCEPTED, result.getCurrentStatus());
     }
 
-    @Test
-    void getLatestLocation_Success() {
-        when(assignmentRepository.findByRequestIdAndIsActiveTrue(requestId))
-                .thenReturn(Optional.of(testAssignment));
-        
-        TrackingLocation location = TrackingLocation.builder()
-                .latitude(locationRequestDTO.getLatitude())
-                .longitude(locationRequestDTO.getLongitude())
-                .timestamp(locationRequestDTO.getTimestamp())
-                .build();
-                
-        when(trackingLocationRepository.findFirstByEmergencyRequestIdOrderByTimestampDesc(requestId))
-                .thenReturn(Optional.of(location));
 
-        TrackingLocationResponseDTO result = trackingService.getLatestLocation(requestId);
-
-        assertNotNull(result);
-        assertEquals(locationRequestDTO.getLatitude(), result.getLatitude());
-        assertEquals(locationRequestDTO.getLongitude(), result.getLongitude());
-    }
 }

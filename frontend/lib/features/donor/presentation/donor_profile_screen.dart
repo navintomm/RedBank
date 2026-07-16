@@ -8,6 +8,7 @@ import '../../../../core/widgets/information_card.dart';
 import '../../../../core/widgets/loading_skeleton.dart';
 import '../domain/donor_models.dart';
 import '../providers/donor_provider.dart';
+import 'edit_donor_profile_screen.dart';
 import 'widgets/profile_header.dart';
 
 class DonorProfileScreen extends ConsumerWidget {
@@ -25,7 +26,10 @@ class DonorProfileScreen extends ConsumerWidget {
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Profile',
             onPressed: () {
-              // TODO: Navigate to Edit Profile Screen
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const EditDonorProfileScreen()),
+              );
             },
           ),
         ],

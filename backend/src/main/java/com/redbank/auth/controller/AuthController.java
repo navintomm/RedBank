@@ -3,6 +3,7 @@ package com.redbank.auth.controller;
 import com.redbank.auth.dto.AuthResponse;
 import com.redbank.auth.dto.RefreshRequest;
 import com.redbank.auth.dto.UserDto;
+import com.redbank.auth.dto.UpdateFcmTokenRequest;
 import com.redbank.auth.dto.VerifyRequest;
 import com.redbank.auth.service.AuthService;
 import com.redbank.core.dto.ApiResponse;
@@ -52,5 +53,14 @@ public class AuthController {
     public ResponseEntity<ApiResponse<UserDto>> getCurrentUser(@AuthenticationPrincipal UserDetails userDetails) {
         UserDto userDto = authService.getCurrentUser(userDetails.getUsername());
         return ResponseEntity.ok(ApiResponse.success(userDto, "User retrieved successfully"));
+    }
+
+    @PostMapping("/fcm-token")
+    @Operation(summary = "Update FCM Token", description = "Updates the Firebase Cloud Messaging token for the user", security = @SecurityRequirement(name = "bearerAuth"))
+    public ResponseEntity<ApiResponse<Void>> updateFcmToken(
+            @AuthenticationPrincipal UserDetails userDetails,
+            @Valid @RequestBody UpdateFcmTokenRequest request) {
+        authService.updateFcmToken(userDetails.getUsername(), request);
+        return ResponseEntity.ok(ApiResponse.success(null, "FCM token updated successfully"));
     }
 }

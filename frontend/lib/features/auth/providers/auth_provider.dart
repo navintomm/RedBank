@@ -22,7 +22,38 @@ class AuthNotifier extends StateNotifier<AuthState> {
   final AuthRepository _repository;
   final SecureTokenStorage _tokenStorage;
 
-  AuthNotifier(this._repository, this._tokenStorage) : super(AuthState.initial());
+  AuthNotifier(this._repository, this._tokenStorage) : super(AuthState.initial()) {
+    _restoreSession();
+  }
+
+  Future<void> _restoreSession() async {
+    state = AuthState.loading();
+    try {
+      final token = await _tokenStorage.getAccessToken();
+      if (token == null) {
+        state = AuthState.unauthenticated();
+        return;
+      }
+      
+      // Verify the token by calling getCurrentUser
+      await _repository.getCurrentUser();
+      state = AuthState.authenticated();
+    } catch (e) {
+      // If token is invalid or request fails, token refresh will be triggered by Dio interceptor.
+      // If refresh also fails, Dio interceptor will clear tokens and call forceLogout.
+      // We start in authenticated state to allow Dio to attempt refresh,
+      // but if the initial check fails without triggering a refresh (e.g. network error), we might just stay unauthenticated.
+      // Actually, let's just let the state be unauthenticated if it fails completely.
+      // Wait, if we call getCurrentUser, the Dio interceptor runs. 
+      // If refresh fails, interceptor clears tokens.
+      final tokenAfter = await _tokenStorage.getAccessToken();
+      if (tokenAfter == null) {
+        state = AuthState.unauthenticated();
+      } else {
+        state = AuthState.authenticated();
+      }
+    }
+  }
 
   Future<void> verifyFirebaseUser(firebase.User user) async {
     state = AuthState.loading();
@@ -46,6 +77,10 @@ class AuthNotifier extends StateNotifier<AuthState> {
   Future<void> logout() async {
     state = AuthState.loading();
     await _repository.logout();
+    await forceLogout();
+  }
+
+  Future<void> forceLogout() async {
     await _tokenStorage.clearTokens();
     await firebase.FirebaseAuth.instance.signOut();
     state = AuthState.unauthenticated();

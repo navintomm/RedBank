@@ -31,4 +31,23 @@ class AuthRepository {
       // Ignore network errors on logout
     }
   }
+
+  Future<void> updateFcmToken(String token) async {
+    try {
+      await _dio.post(
+        '/auth/fcm-token',
+        data: {'fcmToken': token},
+      );
+    } catch (e) {
+      // Ignore for now, token sync failure shouldn't crash the app
+    }
+  }
+
+  Future<void> getCurrentUser() async {
+    try {
+      await _dio.get('/auth/me');
+    } catch (e) {
+      throw Exception('Failed to get current user');
+    }
+  }
 }

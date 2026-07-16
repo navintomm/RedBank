@@ -127,6 +127,14 @@ public class AuthService {
         return userMapper.toDto(user);
     }
 
+    @Transactional
+    public void updateFcmToken(String firebaseUid, UpdateFcmTokenRequest request) {
+        User user = userRepository.findByFirebaseUidAndIsDeletedFalse(firebaseUid)
+                .orElseThrow(() -> new AuthException("User not found"));
+        user.setFcmToken(request.fcmToken());
+        userRepository.save(user);
+    }
+
     private RefreshToken createRefreshToken(User user) {
         // Delete existing refresh tokens for the user to ensure single device session (optional logic)
         refreshTokenRepository.deleteByUser(user);

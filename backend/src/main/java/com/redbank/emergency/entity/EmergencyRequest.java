@@ -43,6 +43,14 @@ public class EmergencyRequest {
     @Column(name = "patient_name", nullable = false, length = 128)
     private String patientName;
 
+    @Column(name = "patient_age")
+    private Integer patientAge;
+
+    @Enumerated(EnumType.STRING)
+    @JdbcTypeCode(SqlTypes.NAMED_ENUM)
+    @Column(name = "patient_gender", columnDefinition = "gender_enum")
+    private com.redbank.donor.entity.Gender patientGender;
+
     @NotNull
     @Enumerated(EnumType.STRING)
     @JdbcTypeCode(SqlTypes.NAMED_ENUM)

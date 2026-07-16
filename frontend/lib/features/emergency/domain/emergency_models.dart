@@ -9,6 +9,8 @@ class EmergencyRequestModel {
   final String? hospitalAddress;
   final String? city;
   final String? patientName;
+  final int? patientAge;
+  final String? patientGender;
   final String priority;
   final String emergencyType;
   final DateTime createdAt;
@@ -27,6 +29,8 @@ class EmergencyRequestModel {
     this.hospitalAddress,
     this.city,
     this.patientName,
+    this.patientAge,
+    this.patientGender,
     required this.priority,
     required this.emergencyType,
     required this.createdAt,
@@ -47,6 +51,8 @@ class EmergencyRequestModel {
       hospitalAddress: json['hospitalAddress'] as String?,
       city: json['city'] as String?,
       patientName: json['patientName'] as String?,
+      patientAge: json['patientAge'] as int?,
+      patientGender: json['patientGender'] as String?,
       priority: json['priority'] as String,
       emergencyType: json['emergencyType'] as String,
       createdAt: DateTime.parse(json['createdAt'] as String),
@@ -147,7 +153,7 @@ class EmergencyHistoryModel {
 class CreateEmergencyRequestDto {
   final String patientName;
   final int patientAge;
-  final String gender;
+  final String patientGender;
   final String bloodGroup;
   final String emergencyType; // component
   final int unitsRequired;
@@ -164,7 +170,7 @@ class CreateEmergencyRequestDto {
   const CreateEmergencyRequestDto({
     required this.patientName,
     required this.patientAge,
-    required this.gender,
+    required this.patientGender,
     required this.bloodGroup,
     required this.emergencyType,
     required this.unitsRequired,
@@ -183,7 +189,7 @@ class CreateEmergencyRequestDto {
     return {
       'patientName': patientName,
       'patientAge': patientAge,
-      'gender': gender,
+      'patientGender': patientGender,
       'bloodGroup': bloodGroup,
       'emergencyType': emergencyType,
       'unitsRequired': unitsRequired,

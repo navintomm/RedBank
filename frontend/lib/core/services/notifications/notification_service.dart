@@ -5,7 +5,7 @@ import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'notification_handler.dart';
-// Note: In a real app, you would inject an ApiService to sync the FCM token to your backend.
+import '../../features/auth/data/auth_repository.dart';
 
 // --- State Management ---
 
@@ -167,8 +167,8 @@ class NotificationService {
   }
 
   void _sendTokenToBackend(String token) {
-    debugPrint('FCM Token registered: \$token');
-    // TODO: Call API service to link token with user profile
+    debugPrint('FCM Token registered: $token');
+    _ref.read(authRepositoryProvider).updateFcmToken(token);
   }
 
   void _setupListeners() {

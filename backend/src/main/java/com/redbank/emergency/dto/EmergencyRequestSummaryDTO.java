@@ -16,6 +16,9 @@ import java.util.UUID;
 @AllArgsConstructor
 public class EmergencyRequestSummaryDTO {
     private UUID id;
+    private String patientName;
+    private Integer patientAge;
+    private com.redbank.donor.entity.Gender patientGender;
     private String hospitalName;
     private String city;
     private BloodGroup bloodGroup;

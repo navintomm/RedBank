@@ -26,6 +26,11 @@ public class EmergencyRequestCreateDTO {
     @NotBlank(message = "Patient name is required")
     private String patientName;
     
+    @Min(value = 0, message = "Age cannot be negative")
+    private Integer patientAge;
+    
+    private com.redbank.donor.entity.Gender patientGender;
+    
     @NotNull(message = "Blood group is required")
     private BloodGroup bloodGroup;
     

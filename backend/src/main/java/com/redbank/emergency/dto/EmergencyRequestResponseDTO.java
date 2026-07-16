@@ -21,6 +21,8 @@ public class EmergencyRequestResponseDTO {
     private UUID hospitalId;
     
     private String patientName;
+    private Integer patientAge;
+    private com.redbank.donor.entity.Gender patientGender;
     private BloodGroup bloodGroup;
     private EmergencyType emergencyType;
     private Integer unitsRequired;

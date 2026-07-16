@@ -18,7 +18,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.test.web.servlet.MockMvc;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.Collections;
 import java.util.Set;
 import java.util.UUID;
@@ -90,7 +90,7 @@ class TrackingControllerTest {
         TrackingLocationRequestDTO locationDTO = new TrackingLocationRequestDTO();
         locationDTO.setLatitude(40.7128);
         locationDTO.setLongitude(-74.0060);
-        locationDTO.setTimestamp(OffsetDateTime.now());
+        locationDTO.setTimestamp(LocalDateTime.now());
 
         mockMvc.perform(post("/api/v1/emergencies/" + requestId + "/tracking/location")
                         .with(authentication(new UsernamePasswordAuthenticationToken(testUser, null, Collections.emptyList())))
@@ -120,10 +120,8 @@ class TrackingControllerTest {
     @Test
     void getTrackingStatus_Success() throws Exception {
         TrackingStatusResponseDTO statusDTO = new TrackingStatusResponseDTO();
-        statusDTO.setRequestId(requestId);
-        statusDTO.setDonorId(testUser.getId());
-        statusDTO.setIsActive(true);
-        statusDTO.setStatus(EmergencyStatus.DONOR_TRAVELLING);
+        statusDTO.setTrackingActive(true);
+        statusDTO.setCurrentStatus(EmergencyStatus.DONOR_TRAVELLING);
 
         when(trackingService.getTrackingStatus(requestId, testUser.getId())).thenReturn(statusDTO);
 
@@ -131,7 +129,7 @@ class TrackingControllerTest {
                         .with(authentication(new UsernamePasswordAuthenticationToken(testUser, null, Collections.emptyList()))))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.success").value(true))
-                .andExpect(jsonPath("$.data.status").value(EmergencyStatus.DONOR_TRAVELLING.name()));
+                .andExpect(jsonPath("$.data.currentStatus").value(EmergencyStatus.DONOR_TRAVELLING.name()));
 
         verify(trackingService).getTrackingStatus(requestId, testUser.getId());
     }

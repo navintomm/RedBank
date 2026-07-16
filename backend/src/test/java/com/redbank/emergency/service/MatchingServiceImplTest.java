@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.statemachine.StateMachine;
 import org.springframework.statemachine.config.StateMachineFactory;
+import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.util.Optional;
@@ -61,7 +62,7 @@ class MatchingServiceImplTest {
         when(requestRepository.findById(requestId)).thenReturn(Optional.of(testRequest));
         when(stateMachineFactory.getStateMachine(requestId.toString())).thenReturn(stateMachine);
         when(stateMachine.startReactively()).thenReturn(Mono.empty());
-        when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Mono.empty());
+        when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Flux.empty());
 
         assertDoesNotThrow(() -> matchingService.startMatching(requestId));
 

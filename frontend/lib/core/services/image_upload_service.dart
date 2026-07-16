@@ -2,6 +2,8 @@ import 'dart:io';
 import 'package:dio/dio.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+
 final imageUploadServiceProvider = Provider<ImageUploadService>((ref) {
   return ImageUploadService();
 });
@@ -9,10 +11,9 @@ final imageUploadServiceProvider = Provider<ImageUploadService>((ref) {
 class ImageUploadService {
   final Dio _dio = Dio();
   
-  // TODO: Replace with your actual Cloudinary Cloud Name and Upload Preset
-  static const String _cloudName = 'your_cloud_name_here';
-  static const String _uploadPreset = 'your_unsigned_preset_here';
-  static const String _cloudinaryUrl = 'https://api.cloudinary.com/v1_1/$_cloudName/image/upload';
+  static String get _cloudName => dotenv.env['CLOUDINARY_CLOUD_NAME'] ?? 'your_cloud_name_here';
+  static String get _uploadPreset => dotenv.env['CLOUDINARY_UPLOAD_PRESET'] ?? 'your_unsigned_preset_here';
+  static String get _cloudinaryUrl => 'https://api.cloudinary.com/v1_1/$_cloudName/image/upload';
 
   Future<String> uploadImage({
     required File imageFile,
