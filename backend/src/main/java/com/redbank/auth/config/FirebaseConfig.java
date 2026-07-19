@@ -7,7 +7,9 @@ import jakarta.annotation.PostConstruct;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import com.google.firebase.messaging.FirebaseMessaging;
 import org.springframework.util.ResourceUtils;
 
 import java.io.FileInputStream;
@@ -36,5 +38,14 @@ public class FirebaseConfig {
                 // throw new RuntimeException("Cannot initialize Firebase", e);
             }
         }
+    }
+
+    @Bean
+    public FirebaseMessaging firebaseMessaging() {
+        if (FirebaseApp.getApps().isEmpty()) {
+            logger.warn("FirebaseApp not initialized, FirebaseMessaging bean will not be available");
+            return null;
+        }
+        return FirebaseMessaging.getInstance();
     }
 }

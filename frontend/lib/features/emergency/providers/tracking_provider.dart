@@ -8,6 +8,9 @@ class TrackingState {
   final String? eta;
   final String status;
   final bool isTrackingActive;
+  final int? estimatedTravelTimeMins;
+  final DateTime? estimatedArrival;
+  final String? assignedDonorName;
 
   TrackingState({
     this.currentDonorLocation,
@@ -15,6 +18,9 @@ class TrackingState {
     this.eta,
     required this.status,
     required this.isTrackingActive,
+    this.estimatedTravelTimeMins,
+    this.estimatedArrival,
+    this.assignedDonorName,
   });
 
   TrackingState copyWith({
@@ -23,6 +29,9 @@ class TrackingState {
     String? eta,
     String? status,
     bool? isTrackingActive,
+    int? estimatedTravelTimeMins,
+    DateTime? estimatedArrival,
+    String? assignedDonorName,
   }) {
     return TrackingState(
       currentDonorLocation: currentDonorLocation ?? this.currentDonorLocation,
@@ -30,6 +39,9 @@ class TrackingState {
       eta: eta ?? this.eta,
       status: status ?? this.status,
       isTrackingActive: isTrackingActive ?? this.isTrackingActive,
+      estimatedTravelTimeMins: estimatedTravelTimeMins ?? this.estimatedTravelTimeMins,
+      estimatedArrival: estimatedArrival ?? this.estimatedArrival,
+      assignedDonorName: assignedDonorName ?? this.assignedDonorName,
     );
   }
 }
@@ -45,8 +57,8 @@ class TrackingNotifier extends AutoDisposeFamilyAsyncNotifier<TrackingState, Str
 
     final status = await _fetchStatus();
     
-    // Poll every 5 seconds for requester if tracking is active
-    if (status.isTrackingActive) {
+    // Poll every 5 seconds if not in a terminal state
+    if (status.status != 'COMPLETED' && status.status != 'FAILED' && status.status != 'CANCELLED') {
       _startPolling();
     }
 
@@ -60,8 +72,9 @@ class TrackingNotifier extends AutoDisposeFamilyAsyncNotifier<TrackingState, Str
       currentDonorLocation: response.latestLocation,
       status: response.currentStatus,
       isTrackingActive: response.isTrackingActive,
-      // ETA and distance would typically be provided by the backend or calculated locally.
-      // For now, we leave them null until calculated by the UI map.
+      estimatedTravelTimeMins: response.estimatedTravelTimeMins,
+      estimatedArrival: response.estimatedArrival,
+      assignedDonorName: response.assignedDonorName,
     );
   }
 
@@ -72,7 +85,7 @@ class TrackingNotifier extends AutoDisposeFamilyAsyncNotifier<TrackingState, Str
         final newStatus = await _fetchStatus();
         state = AsyncData(newStatus);
         
-        if (!newStatus.isTrackingActive) {
+        if (newStatus.status == 'COMPLETED' || newStatus.status == 'FAILED' || newStatus.status == 'CANCELLED') {
           timer.cancel();
         }
       } catch (e) {

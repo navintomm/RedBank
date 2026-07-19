@@ -124,8 +124,23 @@ public class TrackingServiceImpl implements TrackingService {
 
         boolean isTrackingActive = request.getStatus() == EmergencyStatus.DONOR_TRAVELLING;
         TrackingLocationResponseDTO latestLocationDto = null;
+        Integer estimatedTravelTimeMins = null;
+        java.time.OffsetDateTime estimatedArrival = null;
+        UUID assignedDonorId = null;
+        String assignedDonorName = null;
 
-        if (isTrackingActive) {
+        if (isTrackingActive || request.getStatus() == EmergencyStatus.ACCEPTED) {
+            Optional<EmergencyRequestAssignment> assignmentOpt = assignmentRepository.findByRequestIdAndIsActiveTrue(requestId);
+            if (assignmentOpt.isPresent()) {
+                EmergencyRequestAssignment assignment = assignmentOpt.get();
+                estimatedTravelTimeMins = assignment.getEstimatedTravelTimeMins();
+                estimatedArrival = assignment.getEstimatedArrival();
+                assignedDonorId = assignment.getDonor().getId();
+                assignedDonorName = assignment.getDonor().getFirstName() + " " + assignment.getDonor().getLastName();
+            }
+        }
+
+        if (isTrackingActive || request.getStatus() == EmergencyStatus.ARRIVED) {
             Optional<TrackingLocation> latestLoc = trackingLocationRepository.findFirstByEmergencyRequestIdOrderByTimestampDesc(requestId);
             if (latestLoc.isPresent()) {
                 latestLocationDto = mapToDTO(latestLoc.get());
@@ -136,6 +151,10 @@ public class TrackingServiceImpl implements TrackingService {
                 .isTrackingActive(isTrackingActive)
                 .currentStatus(request.getStatus())
                 .latestLocation(latestLocationDto)
+                .estimatedTravelTimeMins(estimatedTravelTimeMins)
+                .estimatedArrival(estimatedArrival)
+                .assignedDonorId(assignedDonorId)
+                .assignedDonorName(assignedDonorName)
                 .build();
     }
 

@@ -30,6 +30,14 @@ public class AssignmentServiceImpl implements AssignmentService {
     public void processAcceptance(UUID requestId, UUID donorId) {
         log.info("Processing acceptance assignment for request {} and donor {}", requestId, donorId);
         
+        if (assignmentRepository.existsByRequestIdAndIsActiveTrue(requestId)) {
+            throw new IllegalStateException("Active assignment already exists for this request");
+        }
+        
+        if (assignmentRepository.existsByRequestIdAndDonorId(requestId, donorId)) {
+            throw new IllegalStateException("Donor is already assigned to this request");
+        }
+        
         var request = requestRepository.findById(requestId).orElseThrow();
         var donor = userRepository.findById(donorId).orElseThrow();
         var donorProfile = donorRepository.findByUserIdAndIsDeletedFalse(donorId).orElseThrow();

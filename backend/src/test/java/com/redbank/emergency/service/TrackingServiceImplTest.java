@@ -77,9 +77,14 @@ class TrackingServiceImplTest {
 
         testRequest = new EmergencyRequest();
         testRequest.setId(requestId);
+        
+        User testRequester = new User();
+        testRequester.setId(UUID.randomUUID());
+        testRequest.setRequester(testRequester);
+        
         testRequest.setLatitude(BigDecimal.valueOf(40.7128));
         testRequest.setLongitude(BigDecimal.valueOf(-74.0060));
-        testRequest.setStatus(EmergencyStatus.ACCEPTED);
+        testRequest.setStatus(EmergencyStatus.DONOR_TRAVELLING);
 
         testAssignment = new EmergencyRequestAssignment();
         testAssignment.setRequest(testRequest);
@@ -87,8 +92,8 @@ class TrackingServiceImplTest {
         testAssignment.setIsActive(true);
 
         locationRequestDTO = new TrackingLocationRequestDTO();
-        locationRequestDTO.setLatitude(40.7127);
-        locationRequestDTO.setLongitude(-74.0059);
+        locationRequestDTO.setLatitude(41.7127);
+        locationRequestDTO.setLongitude(-75.0059);
         locationRequestDTO.setAccuracy(5.0);
         locationRequestDTO.setSpeed(10.0);
         locationRequestDTO.setHeading(90.0);
@@ -157,14 +162,15 @@ class TrackingServiceImplTest {
 
     @Test
     void getTrackingStatus_Success() {
-        when(assignmentRepository.findByRequestIdAndDonorIdAndIsActiveTrue(requestId, donorId))
+        when(assignmentRepository.findByRequestIdAndIsActiveTrue(requestId))
                 .thenReturn(Optional.of(testAssignment));
+        when(requestRepository.findById(requestId)).thenReturn(Optional.of(testRequest));
 
         TrackingStatusResponseDTO result = trackingService.getTrackingStatus(requestId, donorId);
 
         assertNotNull(result);
         assertTrue(result.isTrackingActive());
-        assertEquals(EmergencyStatus.ACCEPTED, result.getCurrentStatus());
+        assertEquals(EmergencyStatus.DONOR_TRAVELLING, result.getCurrentStatus());
     }
 
 

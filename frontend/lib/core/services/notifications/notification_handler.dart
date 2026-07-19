@@ -1,5 +1,9 @@
+import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/foundation.dart';
+import '../../../../main.dart';
+import '../../features/emergency/presentation/screens/donor_response_screen.dart';
+import '../../features/emergency/presentation/screens/emergency_details_screen.dart';
 import 'notification_service.dart';
 
 /// Top-level function for handling background messages
@@ -13,25 +17,43 @@ Future<void> firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 
 class NotificationHandler {
   static void handleNotificationNavigation(RemoteMessage message) {
+    if (message.data.isEmpty) return; // Ignore malformed
+
     final type = message.data['type'];
     final emergencyId = message.data['emergencyId'];
 
-    if (emergencyId == null) return;
+    if (emergencyId == null || type == null) return; // Ignore malformed
 
-    // Based on the type of notification, deep link appropriately.
-    // Assuming go_router is configured to handle deep links or we use a global navigator key.
-    // A simplified generic approach for now (actual navigation depends on app router setup)
-    
-    // We would typically dispatch an event or push to a global navigation service.
-    // For this boilerplate, we log the intended route.
-    
+    final navigator = globalNavigatorKey.currentState;
+    if (navigator == null) return;
+
+    final routeName = type == 'EMERGENCY_REQUEST' 
+        ? '/emergency/response/$emergencyId' 
+        : '/emergency/details/$emergencyId';
+
+    // Prevent duplicate navigation if already viewing the destination screen
+    bool isCurrentRoute = false;
+    navigator.popUntil((route) {
+      isCurrentRoute = route.settings.name == routeName;
+      return true; // Stop immediately, popping nothing
+    });
+
+    if (isCurrentRoute) {
+      debugPrint('Already on $routeName, ignoring navigation');
+      return;
+    }
+
     if (type == 'EMERGENCY_REQUEST') {
-      debugPrint('Deep Link -> /emergency/response/$emergencyId');
-    } else if (['EMERGENCY_ACCEPTED', 'DONOR_ASSIGNED', 'DONATION_COMPLETED'].contains(type)) {
-      debugPrint('Deep Link -> /emergency/$emergencyId');
+      navigator.push(MaterialPageRoute(
+        settings: RouteSettings(name: routeName),
+        builder: (_) => DonorResponseScreen(requestId: emergencyId),
+      ));
     } else {
-      // Default to history or details
-      debugPrint('Deep Link -> /emergency/$emergencyId');
+      // Default for EMERGENCY_ACCEPTED, DONOR_ASSIGNED, DONOR_ARRIVED, DONATION_COMPLETED
+      navigator.push(MaterialPageRoute(
+        settings: RouteSettings(name: routeName),
+        builder: (_) => EmergencyDetailsScreen(requestId: emergencyId),
+      ));
     }
   }
 

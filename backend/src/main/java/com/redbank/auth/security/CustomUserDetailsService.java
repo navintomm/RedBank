@@ -30,10 +30,6 @@ public class CustomUserDetailsService implements UserDetailsService {
                 .map(role -> new SimpleGrantedAuthority(role.getName()))
                 .collect(Collectors.toList());
 
-        return org.springframework.security.core.userdetails.User.builder()
-                .username(user.getFirebaseUid())
-                .password("") // Password not used for Firebase Auth
-                .authorities(authorities)
-                .build();
+        return new CustomUserDetails(user, authorities);
     }
 }

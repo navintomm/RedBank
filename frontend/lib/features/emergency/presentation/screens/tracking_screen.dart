@@ -25,63 +25,74 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   Set<Polyline> _polylines = {};
   double _distanceRemaining = 0.0;
   String _eta = 'Calculating...';
+  bool _isFirstLoad = true;
 
   @override
   void initState() {
     super.initState();
-    // Pre-calculate distance if we have initial positions
     WidgetsBinding.instance.addPostFrameCallback((_) {
       _updateMapElements();
     });
   }
 
   void _updateMapElements() {
-    final trackingStateAsync = ref.watch(trackingProvider(widget.emergency.id));
-    trackingStateAsync.whenData((trackingState) {
-      if (trackingState.currentDonorLocation == null) return;
+    final trackingStateAsync = ref.read(trackingProvider(widget.emergency.id));
+    if (!trackingStateAsync.hasValue) return;
+    
+    final trackingState = trackingStateAsync.value!;
+    final hospitalPos = LatLng(widget.emergency.latitude, widget.emergency.longitude);
 
-      final hospitalPos = LatLng(widget.emergency.latitude, widget.emergency.longitude);
-      final donorPos = LatLng(
+    LatLng? donorPos;
+    if (trackingState.currentDonorLocation != null) {
+      donorPos = LatLng(
         trackingState.currentDonorLocation!.latitude,
         trackingState.currentDonorLocation!.longitude,
       );
+    }
 
-      final distanceMeters = Geolocator.distanceBetween(
+    double distanceMeters = 0.0;
+    if (donorPos != null) {
+      distanceMeters = Geolocator.distanceBetween(
         donorPos.latitude, donorPos.longitude,
         hospitalPos.latitude, hospitalPos.longitude,
       );
+    }
 
-      final speed = trackingState.currentDonorLocation!.speed ?? 0.0;
-      String etaStr = 'Calculating...';
-      if (speed > 1.0) {
-        final seconds = distanceMeters / speed;
-        final minutes = (seconds / 60).ceil();
-        etaStr = '$minutes min';
-      } else {
-        // Assume 30 km/h (8.33 m/s) average urban speed if speed is 0
-        final minutes = (distanceMeters / 8.33 / 60).ceil();
-        etaStr = '~$minutes min';
-      }
+    String etaStr = 'Calculating...';
+    if (trackingState.estimatedTravelTimeMins != null) {
+      etaStr = '${trackingState.estimatedTravelTimeMins} min';
+    } else if (trackingState.status == 'DONOR_TRAVELLING') {
+      etaStr = 'Calculating...';
+    } else if (trackingState.status == 'ARRIVED' || trackingState.status == 'COMPLETED') {
+      etaStr = 'Arrived';
+      distanceMeters = 0.0;
+    } else {
+      etaStr = 'Waiting...';
+    }
 
-      setState(() {
-        _distanceRemaining = distanceMeters;
-        _eta = etaStr;
-        
-        _markers = {
-          Marker(
-            markerId: const MarkerId('hospital'),
-            position: hospitalPos,
-            infoWindow: const InfoWindow(title: 'Hospital'),
-            icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
-          ),
+    setState(() {
+      _distanceRemaining = distanceMeters;
+      _eta = etaStr;
+      
+      _markers = {
+        Marker(
+          markerId: const MarkerId('hospital'),
+          position: hospitalPos,
+          infoWindow: const InfoWindow(title: 'Hospital'),
+          icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueRed),
+        ),
+      };
+
+      if (donorPos != null) {
+        _markers.add(
           Marker(
             markerId: const MarkerId('donor'),
             position: donorPos,
             infoWindow: const InfoWindow(title: 'Donor'),
             icon: BitmapDescriptor.defaultMarkerWithHue(BitmapDescriptor.hueBlue),
-          ),
-        };
-
+          )
+        );
+        
         _polylines = {
           Polyline(
             polylineId: const PolylineId('route'),
@@ -91,10 +102,16 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
             patterns: [PatternItem.dash(20), PatternItem.gap(10)],
           ),
         };
-      });
-
-      _animateCamera(donorPos, hospitalPos);
+      } else {
+        _polylines = {};
+      }
     });
+
+    // Only auto-animate camera on first load or if explicitly recentering (prevent aggressive zooming on every poll)
+    if (_isFirstLoad && donorPos != null) {
+      _isFirstLoad = false;
+      _animateCamera(donorPos, hospitalPos);
+    }
   }
 
   Future<void> _animateCamera(LatLng p1, LatLng p2) async {
@@ -143,7 +160,9 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                     zoom: 14,
                   ),
                   onMapCreated: (GoogleMapController controller) {
-                    _controller.complete(controller);
+                    if (!_controller.isCompleted) {
+                      _controller.complete(controller);
+                    }
                   },
                   markers: _markers,
                   polylines: _polylines,
@@ -166,6 +185,42 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   }
 
   Widget _buildTrackingPanel(TrackingState state) {
+    String statusMessage = 'Waiting for donor';
+    Color statusColor = Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
+
+    bool isStale = false;
+    if (state.currentDonorLocation != null) {
+      final secondsSinceUpdate = DateTime.now().difference(state.currentDonorLocation!.timestamp.toLocal()).inSeconds;
+      if (secondsSinceUpdate > 120) {
+        isStale = true;
+      }
+    }
+
+    if (state.status == 'COMPLETED') {
+      statusMessage = 'Donation Completed';
+      statusColor = AppColors.success;
+    } else if (state.status == 'ARRIVED') {
+      statusMessage = 'Donor Arrived';
+      statusColor = AppColors.success;
+    } else if (state.status == 'DONOR_TRAVELLING') {
+      if (state.currentDonorLocation == null) {
+        statusMessage = 'Waiting for first location...';
+        statusColor = AppColors.warning;
+      } else if (isStale) {
+        statusMessage = 'Location stale (poor signal)';
+        statusColor = AppColors.warning;
+      } else {
+        statusMessage = '${state.assignedDonorName ?? 'Donor'} is travelling';
+        statusColor = AppColors.primary;
+      }
+    } else if (state.status == 'ACCEPTED') {
+      statusMessage = 'Donor accepted, waiting to start travel';
+      statusColor = AppColors.warning;
+    } else if (state.status == 'FAILED' || state.status == 'CANCELLED') {
+      statusMessage = 'Request ${state.status.toLowerCase()}';
+      statusColor = AppColors.error;
+    }
+
     return Container(
       padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
@@ -237,20 +292,20 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                   height: 12,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
-                    color: state.isTrackingActive ? AppColors.success : Theme.of(context).textTheme.bodySmall?.color,
+                    color: statusColor,
                   ),
                 ),
                 const SizedBox(width: 8),
                 Text(
-                  state.isTrackingActive ? 'Donor is on the way' : 'Tracking inactive',
+                  statusMessage,
                   style: Theme.of(context).textTheme.bodyMedium,
                 ),
                 const Spacer(),
-                if (state.currentDonorLocation != null)
+                if (state.currentDonorLocation != null && state.status == 'DONOR_TRAVELLING')
                   Text(
                     'Updated ${DateTime.now().difference(state.currentDonorLocation!.timestamp.toLocal()).inSeconds}s ago',
                     style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: Theme.of(context).textTheme.bodySmall?.color,
+                      color: isStale ? AppColors.warning : Theme.of(context).textTheme.bodySmall?.color,
                     ),
                   ),
               ],

@@ -54,6 +54,14 @@ public class EmergencyRequestServiceImpl implements EmergencyRequestService {
     @Transactional
     public void cancelRequest(UUID requestId, UUID actorId, String actorType, String reason) {
         log.info("Cancelling emergency request {}", requestId);
+        
+        EmergencyRequest request = requestRepository.findById(requestId)
+                .orElseThrow(() -> new IllegalArgumentException("Request not found"));
+                
+        if (!request.getRequester().getId().equals(actorId)) {
+            throw new IllegalArgumentException("Unauthorized: Only the requester can cancel this emergency request");
+        }
+        
         sendEvent(requestId, EmergencyEvent.CANCEL_REQUEST, actorId, actorType);
     }
     

@@ -49,11 +49,17 @@ class TrackingStatus {
   final bool isTrackingActive;
   final String currentStatus;
   final TrackingLocation? latestLocation;
+  final int? estimatedTravelTimeMins;
+  final DateTime? estimatedArrival;
+  final String? assignedDonorName;
 
   TrackingStatus({
     required this.isTrackingActive,
     required this.currentStatus,
     this.latestLocation,
+    this.estimatedTravelTimeMins,
+    this.estimatedArrival,
+    this.assignedDonorName,
   });
 
   factory TrackingStatus.fromJson(Map<String, dynamic> json) {
@@ -63,6 +69,11 @@ class TrackingStatus {
       latestLocation: json['latestLocation'] != null
           ? TrackingLocation.fromJson(json['latestLocation'])
           : null,
+      estimatedTravelTimeMins: json['estimatedTravelTimeMins'],
+      estimatedArrival: json['estimatedArrival'] != null 
+          ? DateTime.parse(json['estimatedArrival']) 
+          : null,
+      assignedDonorName: json['assignedDonorName'],
     );
   }
 }

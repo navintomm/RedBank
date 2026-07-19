@@ -96,6 +96,7 @@ public class EmergencyStateMachineConfig extends EnumStateMachineConfigurerAdapt
             .withExternal()
                 .source(EmergencyStatus.DONOR_TRAVELLING).target(EmergencyStatus.ARRIVED)
                 .event(EmergencyEvent.ARRIVED_AT_LOCATION)
+                .action(actions.donorArrivedAction())
                 .and()
             .withExternal()
                 .source(EmergencyStatus.ARRIVED).target(EmergencyStatus.DONATION_IN_PROGRESS)

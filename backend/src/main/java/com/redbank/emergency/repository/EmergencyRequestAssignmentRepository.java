@@ -12,4 +12,8 @@ public interface EmergencyRequestAssignmentRepository extends JpaRepository<Emer
     Optional<EmergencyRequestAssignment> findByRequestIdAndIsActiveTrue(UUID requestId);
     
     Optional<EmergencyRequestAssignment> findByRequestIdAndDonorIdAndIsActiveTrue(UUID requestId, UUID donorId);
+
+    boolean existsByRequestIdAndIsActiveTrue(UUID requestId);
+    
+    boolean existsByRequestIdAndDonorId(UUID requestId, UUID donorId);
 }

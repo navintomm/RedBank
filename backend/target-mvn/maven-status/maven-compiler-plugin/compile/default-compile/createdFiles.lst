@@ -67,6 +67,7 @@ com\redbank\auth\security\FirebaseTokenFilter.class
 com\redbank\donor\service\LocationService.class
 com\redbank\emergency\enums\CancelReason.class
 com\redbank\emergency\dto\TrackingLocationRequestDTO.class
+com\redbank\auth\security\CustomUserDetails.class
 com\redbank\emergency\dto\EmergencyRequestHistoryDTO$EmergencyRequestHistoryDTOBuilder.class
 com\redbank\emergency\enums\RequestSource.class
 com\redbank\core\constant\AppConstants.class
@@ -93,9 +94,11 @@ com\redbank\auth\repository\RefreshTokenRepository.class
 com\redbank\emergency\entity\TrackingLocation$TrackingLocationBuilder.class
 com\redbank\auth\mapper\UserMapper.class
 com\redbank\emergency\entity\EmergencyRequestHistory.class
+com\redbank\emergency\service\RoutingService.class
 com\redbank\auth\config\SecurityConfig.class
 com\redbank\emergency\controller\EmergencyController.class
 com\redbank\donor\entity\DonorProfile.class
+com\redbank\emergency\service\impl\HaversineRoutingServiceImpl.class
 com\redbank\emergency\service\impl\NotificationServiceImpl.class
 com\redbank\RedBankApplication.class
 com\redbank\emergency\service\HistoryService.class
@@ -113,6 +116,7 @@ com\redbank\donor\dto\UpdateAvailabilityRequest.class
 com\redbank\emergency\entity\TrackingLocation.class
 com\redbank\emergency\statemachine\validator\EmergencyValidators.class
 com\redbank\donor\entity\DonorProfile$DonorProfileBuilder.class
+com\redbank\auth\dto\UpdateFcmTokenRequest.class
 com\redbank\auth\mapper\UserMapperImpl.class
 com\redbank\emergency\dto\CancelRequestDTO.class
 com\redbank\emergency\statemachine\EmergencyStateMachineConfig.class

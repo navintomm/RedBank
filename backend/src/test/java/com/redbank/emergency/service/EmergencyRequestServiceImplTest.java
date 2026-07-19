@@ -107,20 +107,40 @@ class EmergencyRequestServiceImplTest {
 
     @Test
     void cancelRequest_Success() {
-        UUID requestId = UUID.randomUUID();
-        UUID actorId = UUID.randomUUID();
+        UUID requestId = testRequest.getId();
+        UUID actorId = testRequester.getId();
         String actorType = "REQUESTER";
         String reason = "No longer needed";
 
+        when(requestRepository.findById(requestId)).thenReturn(Optional.of(testRequest));
         when(stateMachineFactory.getStateMachine(requestId.toString())).thenReturn(stateMachine);
         when(stateMachine.startReactively()).thenReturn(Mono.empty());
         when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Flux.empty());
 
         assertDoesNotThrow(() -> emergencyRequestService.cancelRequest(requestId, actorId, actorType, reason));
 
+        verify(requestRepository).findById(requestId);
         verify(stateMachineFactory).getStateMachine(requestId.toString());
         verify(stateMachine).startReactively();
         verify(stateMachine).sendEvent(any(Mono.class));
+    }
+
+    @Test
+    void cancelRequest_Unauthorized_ThrowsException() {
+        UUID requestId = testRequest.getId();
+        UUID maliciousActorId = UUID.randomUUID();
+        String actorType = "REQUESTER";
+        String reason = "Malicious intent";
+
+        when(requestRepository.findById(requestId)).thenReturn(Optional.of(testRequest));
+
+        IllegalArgumentException exception = assertThrows(IllegalArgumentException.class,
+                () -> emergencyRequestService.cancelRequest(requestId, maliciousActorId, actorType, reason));
+
+        assertEquals("Unauthorized: Only the requester can cancel this emergency request", exception.getMessage());
+        
+        verify(requestRepository).findById(requestId);
+        verify(stateMachineFactory, never()).getStateMachine(anyString());
     }
 
     @Test

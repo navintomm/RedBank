@@ -31,47 +31,52 @@ final dioProvider = Provider<Dio>((ref) {
     onError: (DioException e, handler) async {
       // Handle Unauthorized (Token Expiration)
       if (e.response?.statusCode == 401) {
-        final refreshToken = await tokenStorage.getRefreshToken();
-        if (refreshToken != null) {
-          if (refreshTask == null) {
-            // Start the refresh process
-            refreshTask = () async {
-              try {
-                final refreshDio = Dio(BaseOptions(baseUrl: AppConstants.apiBaseUrl));
-                final refreshResponse = await refreshDio.post('/auth/refresh', data: {
-                  'refreshToken': refreshToken,
-                });
-
-                if (refreshResponse.statusCode == 200) {
-                  final newAccessToken = refreshResponse.data['data']['accessToken'];
-                  final newRefreshToken = refreshResponse.data['data']['refreshToken'];
-                  await tokenStorage.saveTokens(newAccessToken, newRefreshToken);
-                } else {
-                  throw Exception('Refresh failed');
-                }
-              } catch (refreshError) {
-                // Refresh failed completely
-                ref.read(authProvider.notifier).forceLogout();
-                rethrow;
-              } finally {
-                refreshTask = null; // Clear task when done
-              }
-            }();
-          }
-
+        if (refreshTask == null) {
+          // Immediately lock refreshTask synchronously so concurrent 401s wait
+          final completer = Completer<void>();
+          refreshTask = completer.future;
+          
           try {
-            await refreshTask;
-            // Retry original request with new token
-            final newAccessToken = await tokenStorage.getAccessToken();
-            final options = e.requestOptions;
-            options.headers['Authorization'] = 'Bearer $newAccessToken';
-            final cloneReq = await dio.fetch(options);
-            return handler.resolve(cloneReq);
-          } catch (retryError) {
+            final refreshToken = await tokenStorage.getRefreshToken();
+            if (refreshToken == null) {
+              ref.read(authProvider.notifier).forceLogout();
+              completer.completeError(Exception('No refresh token'));
+              return handler.next(e);
+            }
+
+            final refreshDio = Dio(BaseOptions(baseUrl: AppConstants.apiBaseUrl));
+            final refreshResponse = await refreshDio.post('/auth/refresh', data: {
+              'refreshToken': refreshToken,
+            });
+
+            if (refreshResponse.statusCode == 200) {
+              final newAccessToken = refreshResponse.data['data']['accessToken'];
+              final newRefreshToken = refreshResponse.data['data']['refreshToken'];
+              await tokenStorage.saveTokens(newAccessToken, newRefreshToken);
+              completer.complete();
+            } else {
+              throw Exception('Refresh failed');
+            }
+          } catch (refreshError) {
+            ref.read(authProvider.notifier).forceLogout();
+            completer.completeError(refreshError);
+            refreshTask = null;
             return handler.next(e);
+          } finally {
+            refreshTask = null;
           }
-        } else {
-          ref.read(authProvider.notifier).forceLogout();
+        }
+
+        try {
+          await refreshTask;
+          // Retry original request with new token
+          final newAccessToken = await tokenStorage.getAccessToken();
+          final options = e.requestOptions;
+          options.headers['Authorization'] = 'Bearer $newAccessToken';
+          final cloneReq = await dio.fetch(options);
+          return handler.resolve(cloneReq);
+        } catch (retryError) {
+          return handler.next(e);
         }
       }
       return handler.next(e);

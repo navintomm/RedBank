@@ -28,6 +28,12 @@ import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
+import com.redbank.donor.entity.AvailabilityStatus;
+import com.redbank.donor.entity.BloodGroup;
+
+import java.math.BigDecimal;
+import java.time.LocalDate;
+
 @ExtendWith(MockitoExtension.class)
 class MatchingServiceImplTest {
 
@@ -42,6 +48,12 @@ class MatchingServiceImplTest {
 
     @Mock
     private StateMachine<EmergencyStatus, EmergencyEvent> stateMachine;
+    
+    @Mock
+    private com.redbank.donor.repository.DonorRepository donorRepository;
+    
+    @Mock
+    private RoutingService routingService;
 
     @InjectMocks
     private MatchingServiceImpl matchingService;
@@ -55,11 +67,22 @@ class MatchingServiceImplTest {
         testRequest = new EmergencyRequest();
         testRequest.setId(requestId);
         testRequest.setCurrentSearchTier(1);
+        testRequest.setBloodGroup(BloodGroup.A_POSITIVE);
     }
 
     @Test
     void startMatching_Success() {
+        com.redbank.auth.entity.User user = new com.redbank.auth.entity.User();
+        user.setId(UUID.randomUUID());
+        com.redbank.donor.entity.DonorProfile testDonorProfile = new com.redbank.donor.entity.DonorProfile();
+        testDonorProfile.setUser(user);
+        testDonorProfile.setDateOfBirth(LocalDate.now().minusYears(25));
+        testDonorProfile.setWeight(BigDecimal.valueOf(60.0));
+        
         when(requestRepository.findById(requestId)).thenReturn(Optional.of(testRequest));
+        when(donorRepository.findAvailableDonorsNearby(any(), any(), any(), anyDouble()))
+                .thenReturn(java.util.List.of(testDonorProfile));
+                
         when(stateMachineFactory.getStateMachine(requestId.toString())).thenReturn(stateMachine);
         when(stateMachine.startReactively()).thenReturn(Mono.empty());
         when(stateMachine.sendEvent(any(Mono.class))).thenReturn(Flux.empty());
