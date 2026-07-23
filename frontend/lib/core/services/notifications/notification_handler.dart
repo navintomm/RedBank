@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:flutter/foundation.dart';
+
 import '../../../../main.dart';
-import '../../features/emergency/presentation/screens/donor_response_screen.dart';
-import '../../features/emergency/presentation/screens/emergency_details_screen.dart';
+import '../../../features/emergency/presentation/screens/donor_response_screen.dart';
+import '../../../features/emergency/presentation/screens/emergency_details_screen.dart';
 import 'notification_service.dart';
 
 /// Top-level function for handling background messages

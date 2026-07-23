@@ -78,7 +78,7 @@ class _CreateEmergencyScreenState extends ConsumerState<CreateEmergencyScreen> {
     final dto = CreateEmergencyRequestDto(
       patientName: _patientNameController.text.trim(),
       patientAge: int.tryParse(_patientAgeController.text.trim()) ?? 0,
-      gender: _selectedGender,
+      patientGender: _selectedGender,
       bloodGroup: _selectedBloodGroup,
       emergencyType: _selectedComponent,
       unitsRequired: int.tryParse(_unitsController.text.trim()) ?? 1,

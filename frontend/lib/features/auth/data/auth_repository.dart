@@ -3,7 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../../core/api/dio_client.dart';
 import 'auth_models.dart';
 
-final authRepositoryProvider = Provider<AuthRepository>((ref) {
+final Provider<AuthRepository> authRepositoryProvider = Provider<AuthRepository>((ref) {
   return AuthRepository(ref.watch(dioProvider));
 });
 

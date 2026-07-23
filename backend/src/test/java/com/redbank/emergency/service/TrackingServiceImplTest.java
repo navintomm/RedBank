@@ -3,7 +3,6 @@ package com.redbank.emergency.service;
 import com.redbank.auth.entity.User;
 import com.redbank.auth.repository.UserRepository;
 import com.redbank.emergency.dto.TrackingLocationRequestDTO;
-import com.redbank.emergency.dto.TrackingLocationResponseDTO;
 import com.redbank.emergency.dto.TrackingStatusResponseDTO;
 import com.redbank.emergency.entity.EmergencyRequest;
 import com.redbank.emergency.entity.EmergencyRequestAssignment;
@@ -27,7 +26,6 @@ import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
 
 import java.time.LocalDateTime;
-import java.util.Collections;
 import java.util.Optional;
 import java.util.UUID;
 import java.math.BigDecimal;
@@ -37,6 +35,7 @@ import static org.mockito.ArgumentMatchers.any;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class TrackingServiceImplTest {
 
     @Mock

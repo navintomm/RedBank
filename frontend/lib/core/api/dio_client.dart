@@ -5,7 +5,7 @@ import '../storage/secure_token_storage.dart';
 import '../constants/app_constants.dart';
 import '../../features/auth/providers/auth_provider.dart';
 
-final dioProvider = Provider<Dio>((ref) {
+final Provider<Dio> dioProvider = Provider<Dio>((ref) {
   final dio = Dio(BaseOptions(
     baseUrl: AppConstants.apiBaseUrl,
     connectTimeout: const Duration(seconds: AppConstants.timeoutSeconds),

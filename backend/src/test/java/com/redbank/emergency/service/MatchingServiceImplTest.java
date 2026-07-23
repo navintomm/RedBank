@@ -21,20 +21,16 @@ import java.util.UUID;
 
 import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyInt;
-import static org.mockito.ArgumentMatchers.anyList;
-import static org.mockito.ArgumentMatchers.anyString;
 import static org.mockito.ArgumentMatchers.eq;
 import static org.mockito.Mockito.*;
 
-import com.redbank.donor.entity.AvailabilityStatus;
 import com.redbank.donor.entity.BloodGroup;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
 
 @ExtendWith(MockitoExtension.class)
+@SuppressWarnings("unchecked")
 class MatchingServiceImplTest {
 
     @Mock
