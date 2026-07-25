@@ -115,7 +115,7 @@ class _EmergencyHistoryScreenState extends ConsumerState<EmergencyHistoryScreen>
             child: stateAsync.when(
               loading: () => const Center(child: CircularProgressIndicator()),
               error: (error, _) => ErrorStateWidget(
-                errorMessage: 'Failed to load history.',
+                message: 'Failed to load history.',
                 onRetry: () => ref.read(emergencyNotifierProvider.notifier).loadMyRequests(),
               ),
               data: (state) {

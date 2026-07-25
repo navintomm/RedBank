@@ -1,37 +1,67 @@
 import 'package:flutter/material.dart';
+import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
+import '../theme/app_typography.dart';
+import '../theme/app_constants.dart';
+import 'primary_button.dart';
 
 class EmptyStateWidget extends StatelessWidget {
+  final String title;
   final String message;
   final IconData icon;
+  final String? buttonText;
+  final VoidCallback? onAction;
 
   const EmptyStateWidget({
     super.key,
+    required this.title,
     required this.message,
-    this.icon = Icons.inbox_outlined,
+    required this.icon,
+    this.buttonText,
+    this.onAction,
   });
 
   @override
   Widget build(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final color = isDark ? AppColors.textTertiaryDark : AppColors.textTertiaryLight;
+
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(AppSpacing.xl),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
-            Icon(
-              icon,
-              size: 64,
-              color: Theme.of(context).colorScheme.onSurface.withOpacity(0.5),
+            Container(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              decoration: BoxDecoration(
+                color: color.withOpacity(0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(icon, size: AppConstants.iconSizeXl, color: color),
             ),
-            const SizedBox(height: AppSpacing.md),
+            const SizedBox(height: AppSpacing.lg),
+            Text(
+              title,
+              style: AppTypography.getTextTheme(isDark: isDark).titleLarge,
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: AppSpacing.sm),
             Text(
               message,
+              style: AppTypography.getTextTheme(isDark: isDark).bodyMedium?.copyWith(
+                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              ),
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                    color: Theme.of(context).colorScheme.onSurface.withOpacity(0.7),
-                  ),
             ),
+            if (buttonText != null && onAction != null) ...[
+              const SizedBox(height: AppSpacing.xl),
+              PrimaryButton(
+                text: buttonText!,
+                onPressed: onAction,
+              ),
+            ],
           ],
         ),
       ),

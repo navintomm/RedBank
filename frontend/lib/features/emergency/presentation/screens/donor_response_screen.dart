@@ -4,9 +4,16 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
+import '../../../../core/widgets/surface_card.dart';
+import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/icon_button.dart';
+import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/secondary_button.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/section_title.dart';
-import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/status_chip.dart';
 import '../../domain/emergency_models.dart';
 import '../../providers/emergency_provider.dart';
 
@@ -40,9 +47,12 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
   }
 
   Future<void> _handleAccept() async {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.surface1Dark : AppColors.surface1Light,
+        shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
         title: const Text('Confirm Acceptance'),
         content: const Text(
           'Are you sure you want to accept this emergency request? '
@@ -51,15 +61,11 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('CANCEL'),
+            child: Text('CANCEL', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
           ),
-          ElevatedButton(
+          PrimaryButton(
+            text: 'ACCEPT',
             onPressed: () => Navigator.of(ctx).pop(true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: AppColors.primary,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('ACCEPT'),
           ),
         ],
       ),
@@ -101,11 +107,13 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
   }
 
   void _handleDecline() async {
-    // Optional reason dialog
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final reasonController = TextEditingController();
     final shouldDecline = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
+        backgroundColor: isDark ? AppColors.surface1Dark : AppColors.surface1Light,
+        shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
         title: const Text('Decline Request'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -115,9 +123,13 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
             const SizedBox(height: AppSpacing.sm),
             TextField(
               controller: reasonController,
-              decoration: const InputDecoration(
+              decoration: InputDecoration(
                 hintText: 'e.g. Too far away',
-                border: OutlineInputBorder(),
+                border: OutlineInputBorder(borderRadius: AppSpacing.borderRadiusMd),
+                focusedBorder: OutlineInputBorder(
+                  borderRadius: AppSpacing.borderRadiusMd,
+                  borderSide: BorderSide(color: isDark ? AppColors.primaryDark : AppColors.primaryLight),
+                ),
               ),
               maxLines: 2,
             )
@@ -126,11 +138,11 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
         actions: [
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(false),
-            child: const Text('CANCEL'),
+            child: Text('CANCEL', style: TextStyle(color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight)),
           ),
           TextButton(
             onPressed: () => Navigator.of(ctx).pop(true),
-            child: const Text('DECLINE', style: TextStyle(color: AppColors.error)),
+            child: const Text('DECLINE', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
@@ -167,234 +179,227 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+    return RedBankScaffold(
       appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
         title: const Text('Emergency Request'),
+        leading: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          child: MedicalIconButton(
+            icon: Icons.arrow_back,
+            isGlass: true,
+            hasBackground: true,
+            onPressed: () => context.pop(),
+          ),
+        ),
       ),
-      body: stateAsync.when(
-        loading: () => const Center(child: CircularProgressIndicator()),
-        error: (error, _) {
-          // If we encounter a hard page-load error that isn't a 409 action
-          return ErrorStateWidget(
-            errorMessage: 'Failed to load request data.',
+      body: SafeArea(
+        child: stateAsync.when(
+          loading: () => const Center(child: CircularProgressIndicator()),
+          error: (error, _) => ErrorStateWidget(
+            message: 'Failed to load request data.',
             onRetry: () => ref.read(emergencyNotifierProvider.notifier).getRequestDetails(widget.requestId),
-          );
-        },
-        data: (state) {
-          final request = state.currentRequest;
-          if (request == null) {
-            return const Center(child: Text('Request not found.'));
-          }
+          ),
+          data: (state) {
+            final request = state.currentRequest;
+            if (request == null) {
+              return const Center(child: Text('Request not found.'));
+            }
 
-          // Mocking donor eligibility. In a real app this would come from a donor provider
-          const isEligible = true;
+            // Mocking donor eligibility. In a real app this would come from a donor provider
+            const isEligible = true;
 
-          return SingleChildScrollView(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                EmergencyStatusBanner(request: request),
-                Padding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      const SectionTitle(title: 'Emergency Summary'),
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildSummaryCard(request, theme, isDark),
-                      const SizedBox(height: AppSpacing.xl),
+            return SingleChildScrollView(
+              padding: const EdgeInsets.all(AppSpacing.md),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  EmergencyStatusBanner(request: request),
+                  const SizedBox(height: AppSpacing.lg),
 
-                      const SectionTitle(title: 'Patient Information'),
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildPatientMinimalCard(request, theme, isDark),
-                      const SizedBox(height: AppSpacing.xl),
+                  const SectionHeader(title: 'Emergency Summary'),
+                  _buildSummaryCard(request, isDark),
+                  const SizedBox(height: AppSpacing.xl),
 
-                      const SectionTitle(title: 'Hospital Details'),
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildHospitalCard(request, theme, isDark),
-                      const SizedBox(height: AppSpacing.md),
-                      
-                      // Mocking distance data for presentation
-                      const TravelTimeCard(minutes: 15, distanceKm: 4.2),
-                      const SizedBox(height: AppSpacing.xl),
+                  const SectionHeader(title: 'Patient Information'),
+                  _buildPatientMinimalCard(request, isDark),
+                  const SizedBox(height: AppSpacing.xl),
 
-                      const SectionTitle(title: 'Eligibility Check'),
-                      const SizedBox(height: AppSpacing.sm),
-                      const EligibilityCard(
-                        isEligible: isEligible,
-                        isAvailable: true,
-                        isVerified: true,
-                        passedCooldown: true,
-                      ),
-                      const SizedBox(height: AppSpacing.xxl),
+                  const SectionHeader(title: 'Hospital Details'),
+                  _buildHospitalCard(request, isDark),
+                  const SizedBox(height: AppSpacing.md),
+                  
+                  // Mocking distance data for presentation (assuming TravelTimeCard uses core styling internally)
+                  const TravelTimeCard(minutes: 15, distanceKm: 4.2),
+                  const SizedBox(height: AppSpacing.xl),
 
-                      if (['AWAITING_RESPONSES', 'NOTIFICATIONS_SENT', 'DONORS_IDENTIFIED', 'SEARCHING']
-                          .contains(request.status.toUpperCase()))
-                        ResponseActionPanel(
-                          isEligible: isEligible,
-                          isLoading: _isAccepting,
-                          onAccept: _handleAccept,
-                          onDecline: _handleDecline,
-                        ),
-                      const SizedBox(height: AppSpacing.xxl),
-                    ],
+                  const SectionHeader(title: 'Eligibility Check'),
+                  // Assuming EligibilityCard is fine, or wrap it if necessary.
+                  const EligibilityCard(
+                    isEligible: isEligible,
+                    isAvailable: true,
+                    isVerified: true,
+                    passedCooldown: true,
                   ),
-                ),
-              ],
-            ),
-          );
-        },
+                  const SizedBox(height: AppSpacing.xxl),
+
+                  if (['AWAITING_RESPONSES', 'NOTIFICATIONS_SENT', 'DONORS_IDENTIFIED', 'SEARCHING']
+                      .contains(request.status.toUpperCase()))
+                    // Replaced standard action panel with Custom primary/secondary buttons
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        PrimaryButton(
+                          text: 'ACCEPT EMERGENCY',
+                          icon: Icons.favorite,
+                          onPressed: isEligible ? _handleAccept : null,
+                          isLoading: _isAccepting,
+                        ),
+                        const SizedBox(height: AppSpacing.md),
+                        SecondaryButton(
+                          text: 'DECLINE',
+                          onPressed: _handleDecline,
+                        ),
+                      ],
+                    ),
+                  const SizedBox(height: AppSpacing.xxl),
+                ],
+              ),
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildAlreadyAcceptedScreen() {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Update'),
-        automaticallyImplyLeading: false, // Force them to use the button
-      ),
-      body: Center(
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Icon(Icons.favorite, color: AppColors.primary, size: 80),
-              const SizedBox(height: AppSpacing.lg),
-              Text(
-                'Already Accepted',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.bold,
-                  color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
+    return RedBankScaffold(
+      body: SafeArea(
+        child: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(AppSpacing.xl),
+            child: GlassCard(
+              padding: const EdgeInsets.all(AppSpacing.xxl),
+              borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.favorite, color: AppColors.primary, size: 80),
+                  const SizedBox(height: AppSpacing.lg),
+                  Text(
+                    'Already Accepted',
+                    style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.md),
+                  Text(
+                    'Another donor has already accepted this emergency.\n\nThank you for being willing to donate and save a life. Your generosity means the world to us!',
+                    textAlign: TextAlign.center,
+                    style: AppTypography.getTextTheme(isDark: isDark).bodyLarge?.copyWith(
+                      color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                      height: 1.5,
+                    ),
+                  ),
+                  const SizedBox(height: AppSpacing.xxl),
+                  PrimaryButton(
+                    text: 'RETURN TO DASHBOARD',
+                    onPressed: () {
+                      context.pop(); // Returns to dashboard
+                    },
+                  ),
+                ],
               ),
-              const SizedBox(height: AppSpacing.md),
-              Text(
-                'Another donor has already accepted this emergency.\n\nThank you for being willing to donate and save a life. Your generosity means the world to us!',
-                textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyLarge?.copyWith(
-                  color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  height: 1.5,
-                ),
-              ),
-              const SizedBox(height: AppSpacing.xxl),
-              PrimaryButton(
-                text: 'RETURN TO DASHBOARD',
-                onPressed: () {
-                  context.pop(); // Returns to dashboard since they were navigated here from a notification or list
-                },
-              ),
-            ],
+            ),
           ),
         ),
       ),
     );
   }
 
-  Widget _buildSummaryCard(EmergencyRequestModel request, ThemeData theme, bool isDark) {
-    return Card(
-      elevation: 0,
-      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          children: [
-            _buildDetailRow('Priority', request.priority, theme, isDark, isHighlight: request.priority == 'EMERGENCY'),
-            const Divider(),
-            _buildDetailRow(
-              'Blood Required', 
-              '${request.unitsRequired} Units of ${request.bloodGroup.replaceAll('_POSITIVE', '+').replaceAll('_NEGATIVE', '-')}', 
-              theme, 
-              isDark,
-              isHighlight: true
-            ),
-            const Divider(),
-            _buildDetailRow('Component', request.emergencyType.replaceAll('_', ' '), theme, isDark),
-          ],
-        ),
+  Widget _buildSummaryCard(EmergencyRequestModel request, bool isDark) {
+    return SurfaceCard(
+      elevated: true,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        children: [
+          _buildDetailRow('Priority', request.priority, isDark, 
+            statusType: request.priority == 'EMERGENCY' ? StatusType.error : StatusType.warning
+          ),
+          const Divider(height: AppSpacing.xl),
+          _buildDetailRow(
+            'Blood Required', 
+            '${request.unitsRequired} Units of ${request.bloodGroup.replaceAll('_POSITIVE', '+').replaceAll('_NEGATIVE', '-')}', 
+            isDark,
+            isHighlight: true
+          ),
+          const Divider(height: AppSpacing.xl),
+          _buildDetailRow('Component', request.emergencyType.replaceAll('_', ' '), isDark),
+        ],
       ),
     );
   }
 
-  Widget _buildPatientMinimalCard(EmergencyRequestModel request, ThemeData theme, bool isDark) {
-    return Card(
-      elevation: 0,
-      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          children: [
-            Text(
-              'For privacy reasons, only essential information is displayed until you accept the request.',
-              style: theme.textTheme.bodySmall?.copyWith(
-                color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                fontStyle: FontStyle.italic,
-              ),
-            ),
-            const SizedBox(height: AppSpacing.md),
-            _buildDetailRow('Patient Initial', request.patientName?.isNotEmpty == true ? request.patientName![0] : 'U', theme, isDark),
-            const Divider(),
-            _buildDetailRow('Age Group', 'Adult', theme, isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildHospitalCard(EmergencyRequestModel request, ThemeData theme, bool isDark) {
-    return Card(
-      elevation: 0,
-      color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-      shape: RoundedRectangleBorder(
-        borderRadius: AppSpacing.borderRadiusMd,
-        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          children: [
-            _buildDetailRow('Hospital Name', request.hospitalName, theme, isDark),
-            const Divider(),
-            _buildDetailRow('District', request.city ?? 'Unknown', theme, isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildDetailRow(String label, String value, ThemeData theme, bool isDark, {bool isHighlight = false}) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: AppSpacing.xs),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildPatientMinimalCard(EmergencyRequestModel request, bool isDark) {
+    return SurfaceCard(
+      elevated: true,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
         children: [
           Text(
-            label,
-            style: theme.textTheme.bodyMedium?.copyWith(
+            'For privacy reasons, only essential information is displayed until you accept the request.',
+            style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
               color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+              fontStyle: FontStyle.italic,
             ),
           ),
+          const SizedBox(height: AppSpacing.md),
+          _buildDetailRow('Patient Initial', request.patientName?.isNotEmpty == true ? request.patientName![0] : 'U', isDark),
+          const Divider(height: AppSpacing.xl),
+          _buildDetailRow('Age Group', 'Adult', isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildHospitalCard(EmergencyRequestModel request, bool isDark) {
+    return SurfaceCard(
+      elevated: true,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        children: [
+          _buildDetailRow('Hospital Name', request.hospitalName, isDark),
+          const Divider(height: AppSpacing.xl),
+          _buildDetailRow('District', request.city ?? 'Unknown', isDark),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildDetailRow(String label, String value, bool isDark, {bool isHighlight = false, StatusType? statusType}) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Text(
+          label,
+          style: AppTypography.getTextTheme(isDark: isDark).bodyMedium?.copyWith(
+            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+          ),
+        ),
+        if (statusType != null)
+          StatusChip(label: value, type: statusType)
+        else
           Text(
             value,
-            style: theme.textTheme.bodyMedium?.copyWith(
+            style: AppTypography.getTextTheme(isDark: isDark).bodyLarge?.copyWith(
               color: isHighlight ? AppColors.primary : (isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight),
               fontWeight: isHighlight ? FontWeight.bold : FontWeight.w600,
             ),
           ),
-        ],
-      ),
+      ],
     );
   }
 }

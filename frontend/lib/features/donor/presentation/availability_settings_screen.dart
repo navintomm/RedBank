@@ -98,6 +98,7 @@ class _AvailabilitySettingsScreenState extends ConsumerState<AvailabilitySetting
         data: (profile) {
           if (profile == null) {
             return const EmptyStateWidget(
+              title: 'Profile Required',
               message: 'You need to create a donor profile before managing availability.',
               icon: Icons.person_off_outlined,
             );
@@ -147,13 +148,13 @@ class _AvailabilitySettingsScreenState extends ConsumerState<AvailabilitySetting
         loading: () => ListView(
           padding: const EdgeInsets.all(AppSpacing.md),
           children: const [
-            LoadingSkeleton(height: 150),
+            SkeletonLoader(height: 150),
             SizedBox(height: AppSpacing.lg),
-            LoadingSkeleton(height: 200),
+            SkeletonLoader(height: 200),
           ],
         ),
         error: (error, _) => ErrorStateWidget(
-          errorMessage: error.toString(),
+          message: error.toString(),
           onRetry: () => ref.invalidate(donorProfileProvider),
         ),
       ),

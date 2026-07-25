@@ -3,12 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
+import 'package:go_router/go_router.dart';
+
 import '../../domain/emergency_models.dart';
 import '../../providers/tracking_provider.dart';
 import '../../../../core/services/map_service.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/maps/map_loading_widget.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
+import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/icon_button.dart';
+import '../widgets/emergency_timeline.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final EmergencyRequestModel emergency;
@@ -107,7 +116,6 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
       }
     });
 
-    // Only auto-animate camera on first load or if explicitly recentering (prevent aggressive zooming on every poll)
     if (_isFirstLoad && donorPos != null) {
       _isFirstLoad = false;
       _animateCamera(donorPos, hospitalPos);
@@ -127,7 +135,8 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
       northeast: LatLng(maxLat, maxLng),
     );
     
-    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 100));
+    // Add padding to ensure markers aren't hidden behind overlays
+    controller.animateCamera(CameraUpdate.newLatLngBounds(bounds, 120));
   }
 
   @override
@@ -139,20 +148,19 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
       }
     });
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Live Tracking'),
-        centerTitle: true,
-      ),
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
+    return RedBankScaffold(
       body: trackingStateAsync.when(
         data: (trackingState) {
           final initialPos = trackingState.currentDonorLocation != null 
               ? LatLng(trackingState.currentDonorLocation!.latitude, trackingState.currentDonorLocation!.longitude)
               : LatLng(widget.emergency.latitude, widget.emergency.longitude);
 
-          return Column(
+          return Stack(
             children: [
-              Expanded(
+              // 1. Full-screen map
+              Positioned.fill(
                 child: GoogleMap(
                   style: MapService.getMapStyle(context),
                   initialCameraPosition: CameraPosition(
@@ -169,24 +177,104 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
                   myLocationEnabled: false,
                   myLocationButtonEnabled: false,
                   zoomControlsEnabled: false,
+                  mapToolbarEnabled: false,
+                  compassEnabled: false, // We'll rely on the default UX for simplicity or add a custom one
                 ),
               ),
-              _buildTrackingPanel(trackingState),
+
+              // 2. Top App Bar / Summary Overlay
+              Positioned(
+                top: 0,
+                left: 0,
+                right: 0,
+                child: SafeArea(
+                  bottom: false,
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+                    child: _buildTopOverlay(trackingState, isDark),
+                  ),
+                ),
+              ),
+
+              // 3. Bottom Tracking Panel
+              Positioned(
+                bottom: 0,
+                left: 0,
+                right: 0,
+                child: _buildTrackingPanel(trackingState, isDark),
+              ),
             ],
           );
         },
         loading: () => const MapLoadingWidget(),
         error: (error, _) => ErrorStateWidget(
-          errorMessage: 'Failed to load live tracking: $error',
+          message: 'Failed to load live tracking.',
           onRetry: () => ref.invalidate(trackingProvider(widget.emergency.id)),
         ),
       ),
     );
   }
 
-  Widget _buildTrackingPanel(TrackingState state) {
+  Widget _buildTopOverlay(TrackingState state, bool isDark) {
+    return GlassCard(
+      padding: const EdgeInsets.all(AppSpacing.sm),
+      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
+      child: Row(
+        children: [
+          MedicalIconButton(
+            icon: Icons.arrow_back,
+            isGlass: false,
+            hasBackground: false,
+            onPressed: () => context.pop(),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Live Tracking',
+                  style: AppTypography.getTextTheme(isDark: isDark).titleMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                Text(
+                  widget.emergency.hospitalName,
+                  style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
+                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: AppSpacing.sm),
+          // Refresh/re-center button
+          MedicalIconButton(
+            icon: Icons.my_location,
+            isGlass: false,
+            hasBackground: true,
+            onPressed: () {
+              if (state.currentDonorLocation != null) {
+                final donorPos = LatLng(
+                  state.currentDonorLocation!.latitude,
+                  state.currentDonorLocation!.longitude,
+                );
+                final hospitalPos = LatLng(widget.emergency.latitude, widget.emergency.longitude);
+                _animateCamera(donorPos, hospitalPos);
+              }
+            },
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildTrackingPanel(TrackingState state, bool isDark) {
     String statusMessage = 'Waiting for donor';
-    Color statusColor = Theme.of(context).textTheme.bodySmall?.color ?? Colors.grey;
+    Color statusColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
     bool isStale = false;
     if (state.currentDonorLocation != null) {
@@ -211,7 +299,7 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
         statusColor = AppColors.warning;
       } else {
         statusMessage = '${state.assignedDonorName ?? 'Donor'} is travelling';
-        statusColor = AppColors.primary;
+        statusColor = isDark ? AppColors.primaryDark : AppColors.primaryLight;
       }
     } else if (state.status == 'ACCEPTED') {
       statusMessage = 'Donor accepted, waiting to start travel';
@@ -222,95 +310,160 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
     }
 
     return Container(
-      padding: const EdgeInsets.all(24),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.05),
-            blurRadius: 10,
+            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
+            blurRadius: 20,
             offset: const Offset(0, -5),
           ),
         ],
       ),
       child: SafeArea(
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'Distance',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _distanceRemaining > 1000 
-                          ? '${(_distanceRemaining / 1000).toStringAsFixed(1)} km'
-                          : '${_distanceRemaining.toStringAsFixed(0)} m',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ],
-                ),
-                Column(
-                  crossAxisAlignment: CrossAxisAlignment.end,
-                  children: [
-                    Text(
-                      'ETA',
-                      style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                        color: Theme.of(context).textTheme.bodySmall?.color,
-                      ),
-                    ),
-                    const SizedBox(height: 4),
-                    Text(
-                      _eta,
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                      ),
-                    ),
-                  ],
-                ),
-              ],
-            ),
-            const SizedBox(height: 16),
-            const Divider(),
-            const SizedBox(height: 8),
-            Row(
-              children: [
-                Container(
-                  width: 12,
-                  height: 12,
+        top: false,
+        child: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xl),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              // Grabber handle for aesthetics
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  margin: const EdgeInsets.only(bottom: AppSpacing.xl),
                   decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: statusColor,
+                    color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+                    borderRadius: BorderRadius.circular(2),
                   ),
                 ),
-                const SizedBox(width: 8),
-                Text(
-                  statusMessage,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-                const Spacer(),
-                if (state.currentDonorLocation != null && state.status == 'DONOR_TRAVELLING')
-                  Text(
-                    'Updated ${DateTime.now().difference(state.currentDonorLocation!.timestamp.toLocal()).inSeconds}s ago',
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      color: isStale ? AppColors.warning : Theme.of(context).textTheme.bodySmall?.color,
+              ),
+
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        'Distance',
+                        style: AppTypography.getTextTheme(isDark: isDark).labelMedium?.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _distanceRemaining > 1000 
+                            ? '${(_distanceRemaining / 1000).toStringAsFixed(1)} km'
+                            : '${_distanceRemaining.toStringAsFixed(0)} m',
+                        style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                        ),
+                      ),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.end,
+                    children: [
+                      Text(
+                        'ETA',
+                        style: AppTypography.getTextTheme(isDark: isDark).labelMedium?.copyWith(
+                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        _eta,
+                        style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              
+              EmergencyTimeline(currentStatus: state.status),
+              
+              const SizedBox(height: AppSpacing.lg),
+              const Divider(),
+              const SizedBox(height: AppSpacing.md),
+              
+              Row(
+                children: [
+                  Container(
+                    width: 12,
+                    height: 12,
+                    decoration: BoxDecoration(
+                      shape: BoxShape.circle,
+                      color: statusColor,
                     ),
                   ),
-              ],
-            ),
-          ],
+                  const SizedBox(width: AppSpacing.sm),
+                  Expanded(
+                    child: Text(
+                      statusMessage,
+                      style: AppTypography.getTextTheme(isDark: isDark).bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                      ),
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ),
+                  if (state.currentDonorLocation != null && state.status == 'DONOR_TRAVELLING')
+                    Text(
+                      'Updated ${DateTime.now().difference(state.currentDonorLocation!.timestamp.toLocal()).inSeconds}s ago',
+                      style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
+                        color: isStale ? AppColors.warning : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
+                      ),
+                    ),
+                ],
+              ),
+              const SizedBox(height: AppSpacing.lg),
+              
+              // Quick Actions
+              Row(
+                children: [
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.phone_outlined),
+                      label: const Text('Call Donor'),
+                      onPressed: () {
+                        // In a real app, this would use url_launcher
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+                        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: OutlinedButton.icon(
+                      icon: const Icon(Icons.share_outlined),
+                      label: const Text('Share Tracking'),
+                      onPressed: () {
+                        // In a real app, this would use share_plus
+                      },
+                      style: OutlinedButton.styleFrom(
+                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
+                        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
+                        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
         ),
       ),
     );

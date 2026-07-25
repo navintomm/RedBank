@@ -52,6 +52,7 @@ class DonorProfileScreen extends ConsumerWidget {
                 physics: const AlwaysScrollableScrollPhysics(),
                 children: const [
                   EmptyStateWidget(
+                    title: 'No Profile Found',
                     message: 'You have not set up a donor profile yet.\nTap Edit to get started.',
                     icon: Icons.person_add_alt_1_outlined,
                   ),
@@ -65,7 +66,7 @@ class DonorProfileScreen extends ConsumerWidget {
             physics: const AlwaysScrollableScrollPhysics(),
             children: [
               ErrorStateWidget(
-                errorMessage: error.toString(),
+                message: error.toString(),
                 onRetry: () => ref.invalidate(donorProfileProvider),
               ),
             ],
@@ -172,13 +173,13 @@ class DonorProfileScreen extends ConsumerWidget {
       physics: const NeverScrollableScrollPhysics(),
       padding: const EdgeInsets.all(AppSpacing.md),
       children: const [
-        LoadingSkeleton(height: 100),
+        SkeletonLoader(height: 100),
         SizedBox(height: AppSpacing.lg),
-        LoadingSkeleton(height: 120),
+        SkeletonLoader(height: 120),
         SizedBox(height: AppSpacing.md),
-        LoadingSkeleton(height: 120),
+        SkeletonLoader(height: 120),
         SizedBox(height: AppSpacing.md),
-        LoadingSkeleton(height: 120),
+        SkeletonLoader(height: 120),
       ],
     );
   }

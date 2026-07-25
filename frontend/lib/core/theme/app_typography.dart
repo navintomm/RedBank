@@ -1,27 +1,24 @@
 import 'package:flutter/material.dart';
 
 class AppTypography {
-  // Use a modern sans-serif font family if available (e.g., Inter, Roboto).
-  // Assuming default Roboto for now.
-  
   static const String fontFamily = 'Roboto';
 
   static TextTheme getTextTheme({required bool isDark}) {
-    final textColor = isDark ? Colors.white : Colors.black87;
-    final secondaryTextColor = isDark ? Colors.white70 : Colors.black54;
+    final textColor = isDark ? Colors.white : Colors.black;
+    final secondaryTextColor = isDark ? const Color(0x99EBEBF5) : const Color(0x993C3C43); // ~60% opacity
 
     return TextTheme(
-      displayLarge: TextStyle(fontFamily: fontFamily, fontSize: 57, fontWeight: FontWeight.bold, color: textColor),
-      displayMedium: TextStyle(fontFamily: fontFamily, fontSize: 45, fontWeight: FontWeight.bold, color: textColor),
-      displaySmall: TextStyle(fontFamily: fontFamily, fontSize: 36, fontWeight: FontWeight.bold, color: textColor),
+      displayLarge: TextStyle(fontFamily: fontFamily, fontSize: 40, fontWeight: FontWeight.w700, color: textColor, letterSpacing: -0.5),
+      displayMedium: TextStyle(fontFamily: fontFamily, fontSize: 36, fontWeight: FontWeight.w700, color: textColor, letterSpacing: -0.5),
+      displaySmall: TextStyle(fontFamily: fontFamily, fontSize: 32, fontWeight: FontWeight.w700, color: textColor, letterSpacing: -0.5),
       
-      headlineLarge: TextStyle(fontFamily: fontFamily, fontSize: 32, fontWeight: FontWeight.w700, color: textColor),
-      headlineMedium: TextStyle(fontFamily: fontFamily, fontSize: 28, fontWeight: FontWeight.w700, color: textColor),
-      headlineSmall: TextStyle(fontFamily: fontFamily, fontSize: 24, fontWeight: FontWeight.w700, color: textColor),
+      headlineLarge: TextStyle(fontFamily: fontFamily, fontSize: 32, fontWeight: FontWeight.w600, color: textColor, letterSpacing: -0.5),
+      headlineMedium: TextStyle(fontFamily: fontFamily, fontSize: 28, fontWeight: FontWeight.w600, color: textColor, letterSpacing: -0.5),
+      headlineSmall: TextStyle(fontFamily: fontFamily, fontSize: 24, fontWeight: FontWeight.w600, color: textColor, letterSpacing: -0.5),
       
-      titleLarge: TextStyle(fontFamily: fontFamily, fontSize: 22, fontWeight: FontWeight.w600, color: textColor),
-      titleMedium: TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w600, color: textColor),
-      titleSmall: TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w600, color: textColor),
+      titleLarge: TextStyle(fontFamily: fontFamily, fontSize: 24, fontWeight: FontWeight.w600, color: textColor),
+      titleMedium: TextStyle(fontFamily: fontFamily, fontSize: 20, fontWeight: FontWeight.w600, color: textColor),
+      titleSmall: TextStyle(fontFamily: fontFamily, fontSize: 18, fontWeight: FontWeight.w600, color: textColor),
       
       bodyLarge: TextStyle(fontFamily: fontFamily, fontSize: 16, fontWeight: FontWeight.w400, color: textColor),
       bodyMedium: TextStyle(fontFamily: fontFamily, fontSize: 14, fontWeight: FontWeight.w400, color: textColor),

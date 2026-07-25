@@ -19,7 +19,7 @@ class EmergencyStatusChip extends StatelessWidget {
       ),
       decoration: BoxDecoration(
         color: _getBackgroundColor(context),
-        borderRadius: AppSpacing.borderRadiusCircular,
+        borderRadius: AppSpacing.borderRadiusPill,
         border: Border.all(color: _getBorderColor(context)),
       ),
       child: Text(

@@ -5,7 +5,12 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
+import '../../../../core/widgets/surface_card.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/icon_button.dart';
+import '../../../../core/widgets/medical_text_field.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../domain/emergency_models.dart';
 import '../../providers/emergency_provider.dart';
@@ -108,7 +113,6 @@ class _CreateEmergencyScreenState extends ConsumerState<CreateEmergencyScreen> {
             backgroundColor: AppColors.success,
           ),
         );
-        // Refresh provider done inside the notifier
         context.pop();
       } else {
         // Error handling
@@ -128,10 +132,20 @@ class _CreateEmergencyScreenState extends ConsumerState<CreateEmergencyScreen> {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+    return RedBankScaffold(
       appBar: AppBar(
-        title: const Text('Create Emergency Request'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        title: const Text('Request Blood'),
+        leading: Padding(
+          padding: const EdgeInsets.all(AppSpacing.xs),
+          child: MedicalIconButton(
+            icon: Icons.arrow_back,
+            isGlass: true,
+            hasBackground: true,
+            onPressed: () => context.pop(),
+          ),
+        ),
       ),
       body: SafeArea(
         child: Form(
@@ -141,18 +155,19 @@ class _CreateEmergencyScreenState extends ConsumerState<CreateEmergencyScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                _buildPatientSection(),
-                const SizedBox(height: AppSpacing.xl),
-                _buildBloodRequirementSection(),
-                const SizedBox(height: AppSpacing.xl),
-                _buildHospitalSection(),
-                const SizedBox(height: AppSpacing.xl),
-                _buildLocationSection(),
-                const SizedBox(height: AppSpacing.xl),
-                _buildAdditionalInfoSection(),
+                _buildPatientSection(isDark),
+                const SizedBox(height: AppSpacing.lg),
+                _buildBloodRequirementSection(isDark),
+                const SizedBox(height: AppSpacing.lg),
+                _buildHospitalSection(isDark),
+                const SizedBox(height: AppSpacing.lg),
+                _buildLocationSection(isDark),
+                const SizedBox(height: AppSpacing.lg),
+                _buildAdditionalInfoSection(isDark),
                 const SizedBox(height: AppSpacing.xxl),
                 PrimaryButton(
                   text: 'CREATE EMERGENCY',
+                  icon: Icons.health_and_safety_outlined,
                   onPressed: _isSubmitting ? null : _submitForm,
                   isLoading: _isSubmitting,
                 ),
@@ -165,232 +180,262 @@ class _CreateEmergencyScreenState extends ConsumerState<CreateEmergencyScreen> {
     );
   }
 
-  Widget _buildPatientSection() {
+  Widget _buildPatientSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Patient Information'),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _patientNameController,
-          decoration: const InputDecoration(labelText: 'Patient Name *', prefixIcon: Icon(Icons.person_outline)),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) return 'Patient name is required';
-            if (value.length < 2) return 'Name must be at least 2 characters';
-            return null;
-          },
-          textInputAction: TextInputAction.next,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _patientAgeController,
-                decoration: const InputDecoration(labelText: 'Age *', prefixIcon: Icon(Icons.cake_outlined)),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
+        const SectionHeader(title: 'Patient Information'),
+        SurfaceCard(
+          elevated: true,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            children: [
+              MedicalTextField(
+                controller: _patientNameController,
+                labelText: 'Patient Name *',
+                prefixIcon: Icons.person_outline,
                 validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  final age = int.tryParse(value);
-                  if (age == null || age <= 0 || age > 120) return 'Invalid age';
+                  if (value == null || value.trim().isEmpty) return 'Required';
+                  if (value.length < 2) return 'Must be at least 2 characters';
                   return null;
                 },
-                textInputAction: TextInputAction.next,
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _selectedGender,
-                decoration: const InputDecoration(labelText: 'Gender *', prefixIcon: Icon(Icons.wc_outlined)),
-                items: const [
-                  DropdownMenuItem(value: 'MALE', child: Text('Male')),
-                  DropdownMenuItem(value: 'FEMALE', child: Text('Female')),
-                  DropdownMenuItem(value: 'OTHER', child: Text('Other')),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: MedicalTextField(
+                      controller: _patientAgeController,
+                      labelText: 'Age *',
+                      prefixIcon: Icons.cake_outlined,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Required';
+                        final age = int.tryParse(value);
+                        if (age == null || age <= 0 || age > 120) return 'Invalid age';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildDropdown(
+                      label: 'Gender *',
+                      icon: Icons.wc_outlined,
+                      value: _selectedGender,
+                      items: const [
+                        DropdownMenuItem(value: 'MALE', child: Text('Male')),
+                        DropdownMenuItem(value: 'FEMALE', child: Text('Female')),
+                        DropdownMenuItem(value: 'OTHER', child: Text('Other')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedGender = val);
+                      },
+                      isDark: isDark,
+                    ),
+                  ),
                 ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedGender = val);
-                },
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildBloodRequirementSection() {
+  Widget _buildBloodRequirementSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Blood Requirement'),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _selectedBloodGroup,
-                decoration: const InputDecoration(labelText: 'Blood Group *', prefixIcon: Icon(Icons.water_drop_outlined, color: AppColors.primary)),
-                items: const [
-                  DropdownMenuItem(value: 'A_POSITIVE', child: Text('A+')),
-                  DropdownMenuItem(value: 'A_NEGATIVE', child: Text('A-')),
-                  DropdownMenuItem(value: 'B_POSITIVE', child: Text('B+')),
-                  DropdownMenuItem(value: 'B_NEGATIVE', child: Text('B-')),
-                  DropdownMenuItem(value: 'O_POSITIVE', child: Text('O+')),
-                  DropdownMenuItem(value: 'O_NEGATIVE', child: Text('O-')),
-                  DropdownMenuItem(value: 'AB_POSITIVE', child: Text('AB+')),
-                  DropdownMenuItem(value: 'AB_NEGATIVE', child: Text('AB-')),
+        const SectionHeader(title: 'Blood Requirement'),
+        SurfaceCard(
+          elevated: true,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            children: [
+              Row(
+                children: [
+                  Expanded(
+                    flex: 3,
+                    child: _buildDropdown(
+                      label: 'Blood Group *',
+                      icon: Icons.water_drop_outlined,
+                      value: _selectedBloodGroup,
+                      items: const [
+                        DropdownMenuItem(value: 'A_POSITIVE', child: Text('A+')),
+                        DropdownMenuItem(value: 'A_NEGATIVE', child: Text('A-')),
+                        DropdownMenuItem(value: 'B_POSITIVE', child: Text('B+')),
+                        DropdownMenuItem(value: 'B_NEGATIVE', child: Text('B-')),
+                        DropdownMenuItem(value: 'O_POSITIVE', child: Text('O+')),
+                        DropdownMenuItem(value: 'O_NEGATIVE', child: Text('O-')),
+                        DropdownMenuItem(value: 'AB_POSITIVE', child: Text('AB+')),
+                        DropdownMenuItem(value: 'AB_NEGATIVE', child: Text('AB-')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedBloodGroup = val);
+                      },
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    flex: 2,
+                    child: MedicalTextField(
+                      controller: _unitsController,
+                      labelText: 'Units *',
+                      prefixIcon: Icons.format_list_numbered,
+                      keyboardType: TextInputType.number,
+                      validator: (value) {
+                        if (value == null || value.isEmpty) return 'Required';
+                        final units = int.tryParse(value);
+                        if (units == null || units <= 0) return 'Must be > 0';
+                        return null;
+                      },
+                    ),
+                  ),
                 ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedBloodGroup = val);
-                },
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: TextFormField(
-                controller: _unitsController,
-                decoration: const InputDecoration(labelText: 'Units *', prefixIcon: Icon(Icons.format_list_numbered)),
-                keyboardType: TextInputType.number,
-                inputFormatters: [FilteringTextInputFormatter.digitsOnly],
-                validator: (value) {
-                  if (value == null || value.isEmpty) return 'Required';
-                  final units = int.tryParse(value);
-                  if (units == null || units <= 0) return 'Must be > 0';
-                  return null;
-                },
-                textInputAction: TextInputAction.next,
-              ),
-            ),
-          ],
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _selectedComponent,
-                decoration: const InputDecoration(labelText: 'Component *', prefixIcon: Icon(Icons.science_outlined)),
-                items: const [
-                  DropdownMenuItem(value: 'WHOLE_BLOOD', child: Text('Whole Blood')),
-                  DropdownMenuItem(value: 'PLASMA', child: Text('Plasma')),
-                  DropdownMenuItem(value: 'PLATELETS', child: Text('Platelets')),
-                  DropdownMenuItem(value: 'RBC', child: Text('Red Blood Cells')),
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDropdown(
+                      label: 'Component *',
+                      icon: Icons.science_outlined,
+                      value: _selectedComponent,
+                      items: const [
+                        DropdownMenuItem(value: 'WHOLE_BLOOD', child: Text('Whole Blood')),
+                        DropdownMenuItem(value: 'PLASMA', child: Text('Plasma')),
+                        DropdownMenuItem(value: 'PLATELETS', child: Text('Platelets')),
+                        DropdownMenuItem(value: 'RBC', child: Text('Red Blood Cells')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedComponent = val);
+                      },
+                      isDark: isDark,
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: _buildDropdown(
+                      label: 'Priority *',
+                      icon: Icons.priority_high,
+                      value: _selectedPriority,
+                      items: const [
+                        DropdownMenuItem(value: 'ROUTINE', child: Text('Routine')),
+                        DropdownMenuItem(value: 'URGENT', child: Text('Urgent')),
+                        DropdownMenuItem(value: 'EMERGENCY', child: Text('Emergency')),
+                      ],
+                      onChanged: (val) {
+                        if (val != null) setState(() => _selectedPriority = val);
+                      },
+                      isDark: isDark,
+                    ),
+                  ),
                 ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedComponent = val);
-                },
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: DropdownButtonFormField<String>(
-                value: _selectedPriority,
-                decoration: const InputDecoration(labelText: 'Priority *', prefixIcon: Icon(Icons.priority_high)),
-                items: const [
-                  DropdownMenuItem(value: 'ROUTINE', child: Text('Routine (24h)')),
-                  DropdownMenuItem(value: 'URGENT', child: Text('Urgent (12h)')),
-                  DropdownMenuItem(value: 'EMERGENCY', child: Text('Emergency (Now)')),
-                ],
-                onChanged: (val) {
-                  if (val != null) setState(() => _selectedPriority = val);
-                },
-              ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildHospitalSection() {
+  Widget _buildHospitalSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Hospital Information'),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _hospitalNameController,
-          decoration: const InputDecoration(labelText: 'Hospital Name *', prefixIcon: Icon(Icons.local_hospital_outlined)),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) return 'Hospital name is required';
-            if (value.length < 3) return 'Name must be at least 3 characters';
-            return null;
-          },
-          textInputAction: TextInputAction.next,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        TextFormField(
-          controller: _hospitalAddressController,
-          decoration: const InputDecoration(labelText: 'Hospital Address *', prefixIcon: Icon(Icons.map_outlined)),
-          validator: (value) {
-            if (value == null || value.trim().isEmpty) return 'Hospital address is required';
-            return null;
-          },
-          textInputAction: TextInputAction.next,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Expanded(
-              child: TextFormField(
-                controller: _cityController,
-                decoration: const InputDecoration(labelText: 'City *', prefixIcon: Icon(Icons.location_city_outlined)),
+        const SectionHeader(title: 'Hospital Information'),
+        SurfaceCard(
+          elevated: true,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            children: [
+              MedicalTextField(
+                controller: _hospitalNameController,
+                labelText: 'Hospital Name *',
+                prefixIcon: Icons.local_hospital_outlined,
+                validator: (value) {
+                  if (value == null || value.trim().isEmpty) return 'Required';
+                  if (value.length < 3) return 'Must be at least 3 characters';
+                  return null;
+                },
+              ),
+              const SizedBox(height: AppSpacing.md),
+              MedicalTextField(
+                controller: _hospitalAddressController,
+                labelText: 'Hospital Address *',
+                prefixIcon: Icons.map_outlined,
                 validator: (value) {
                   if (value == null || value.trim().isEmpty) return 'Required';
                   return null;
                 },
-                textInputAction: TextInputAction.next,
               ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: TextFormField(
-                controller: _districtController,
-                decoration: const InputDecoration(labelText: 'District *', prefixIcon: Icon(Icons.terrain_outlined)),
-                validator: (value) {
-                  if (value == null || value.trim().isEmpty) return 'Required';
-                  return null;
-                },
-                textInputAction: TextInputAction.next,
+              const SizedBox(height: AppSpacing.md),
+              Row(
+                children: [
+                  Expanded(
+                    child: MedicalTextField(
+                      controller: _cityController,
+                      labelText: 'City *',
+                      prefixIcon: Icons.location_city_outlined,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Required';
+                        return null;
+                      },
+                    ),
+                  ),
+                  const SizedBox(width: AppSpacing.md),
+                  Expanded(
+                    child: MedicalTextField(
+                      controller: _districtController,
+                      labelText: 'District *',
+                      prefixIcon: Icons.terrain_outlined,
+                      validator: (value) {
+                        if (value == null || value.trim().isEmpty) return 'Required';
+                        return null;
+                      },
+                    ),
+                  ),
+                ],
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildLocationSection() {
+  Widget _buildLocationSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Hospital Location *'),
-        const SizedBox(height: AppSpacing.sm),
-        LocationPickerWidget(
-          height: 250,
-          onLocationSelected: (location, address) {
-            setState(() {
-              _selectedLocation = location;
-              // Optionally autofill address if empty
-              if (address != null && _hospitalAddressController.text.isEmpty) {
-                _hospitalAddressController.text = address;
-              }
-            });
-          },
+        const SectionHeader(title: 'Hospital Location *'),
+        SurfaceCard(
+          elevated: true,
+          padding: EdgeInsets.zero,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(AppSpacing.radiusLg),
+            child: LocationPickerWidget(
+              height: 250,
+              onLocationSelected: (location, address) {
+                setState(() {
+                  _selectedLocation = location;
+                  if (address != null && _hospitalAddressController.text.isEmpty) {
+                    _hospitalAddressController.text = address;
+                  }
+                });
+              },
+            ),
+          ),
         ),
         if (_selectedLocation == null)
           Padding(
-            padding: const EdgeInsets.only(top: AppSpacing.sm),
+            padding: const EdgeInsets.only(top: AppSpacing.sm, left: AppSpacing.xs),
             child: Text(
               'Location is required for emergency matching.',
-              style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                color: AppColors.error,
+              style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
+                color: isDark ? AppColors.errorDark : AppColors.errorLight,
               ),
             ),
           ),
@@ -398,34 +443,77 @@ class _CreateEmergencyScreenState extends ConsumerState<CreateEmergencyScreen> {
     );
   }
 
-  Widget _buildAdditionalInfoSection() {
+  Widget _buildAdditionalInfoSection(bool isDark) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const SectionTitle(title: 'Additional Information'),
-        const SizedBox(height: AppSpacing.sm),
-        TextFormField(
-          controller: _medicalNotesController,
-          decoration: const InputDecoration(
-            labelText: 'Medical Notes (Optional)',
-            alignLabelWithHint: true,
-            prefixIcon: Icon(Icons.note_alt_outlined),
+        const SectionHeader(title: 'Additional Information'),
+        SurfaceCard(
+          elevated: true,
+          padding: const EdgeInsets.all(AppSpacing.lg),
+          child: Column(
+            children: [
+              MedicalTextField(
+                controller: _medicalNotesController,
+                labelText: 'Medical Notes (Optional)',
+                prefixIcon: Icons.note_alt_outlined,
+                maxLines: 3,
+              ),
+              const SizedBox(height: AppSpacing.md),
+              MedicalTextField(
+                controller: _contactInstructionsController,
+                labelText: 'Contact Instructions (Optional)',
+                prefixIcon: Icons.phone_outlined,
+                maxLines: 2,
+              ),
+            ],
           ),
-          maxLines: 3,
-          textInputAction: TextInputAction.newline,
-        ),
-        const SizedBox(height: AppSpacing.md),
-        TextFormField(
-          controller: _contactInstructionsController,
-          decoration: const InputDecoration(
-            labelText: 'Contact Instructions (Optional)',
-            alignLabelWithHint: true,
-            prefixIcon: Icon(Icons.phone_outlined),
-          ),
-          maxLines: 2,
-          textInputAction: TextInputAction.done,
         ),
       ],
+    );
+  }
+
+  Widget _buildDropdown({
+    required String label,
+    required IconData icon,
+    required String value,
+    required List<DropdownMenuItem<String>> items,
+    required ValueChanged<String?> onChanged,
+    required bool isDark,
+  }) {
+    return DropdownButtonFormField<String>(
+      value: value,
+      icon: const Icon(Icons.arrow_drop_down, color: AppColors.primary),
+      decoration: InputDecoration(
+        labelText: label,
+        prefixIcon: Icon(icon, color: AppColors.primary),
+        contentPadding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.md),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+          ),
+        ),
+        enabledBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
+          ),
+        ),
+        focusedBorder: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
+          borderSide: BorderSide(
+            color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+            width: 2.0,
+          ),
+        ),
+        filled: true,
+        fillColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+      ),
+      items: items,
+      onChanged: onChanged,
+      dropdownColor: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
+      style: AppTypography.getTextTheme(isDark: isDark).bodyLarge,
     );
   }
 }

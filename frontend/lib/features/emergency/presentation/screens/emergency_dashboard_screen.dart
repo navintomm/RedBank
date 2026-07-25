@@ -4,13 +4,19 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/theme/app_typography.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
+import '../../../../core/widgets/surface_card.dart';
+import '../../../../core/widgets/glass_card.dart';
+import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/icon_button.dart';
 import '../../../../core/widgets/error_state_widget.dart';
+import '../../../../core/widgets/empty_state_widget.dart';
+import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../../core/widgets/section_title.dart';
+import '../../../../core/widgets/status_chip.dart';
 import '../../domain/emergency_models.dart';
 import '../../providers/emergency_provider.dart';
-import '../widgets/emergency_empty_state.dart';
-import '../widgets/emergency_loading_skeleton.dart';
-import '../widgets/emergency_statistics_card.dart';
 import '../widgets/emergency_summary_card.dart';
 
 class EmergencyDashboardScreen extends ConsumerStatefulWidget {
@@ -21,6 +27,8 @@ class EmergencyDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScreen> {
+  int _bottomNavIndex = 0;
+
   @override
   void initState() {
     super.initState();
@@ -34,238 +42,336 @@ class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScr
   @override
   Widget build(BuildContext context) {
     final emergencyStateAsync = ref.watch(emergencyNotifierProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
-      appBar: AppBar(
-        title: const Text('Emergency Dashboard'),
-        centerTitle: false,
-        actions: [
-          IconButton(
-            icon: const Icon(Icons.refresh),
-            tooltip: 'Refresh',
-            onPressed: () {
-              ref.read(emergencyNotifierProvider.notifier).loadActiveEmergencies();
-              ref.read(emergencyNotifierProvider.notifier).loadMyRequests();
-            },
-          )
-        ],
-      ),
+    return RedBankScaffold(
+      // Floating Bottom Navigation
+      bottomNavigationBar: _buildFloatingBottomNav(isDark),
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(emergencyNotifierProvider.notifier).loadActiveEmergencies();
           await ref.read(emergencyNotifierProvider.notifier).loadMyRequests();
         },
-        child: emergencyStateAsync.when(
-          loading: () => const SingleChildScrollView(
-            padding: EdgeInsets.all(AppSpacing.md),
-            child: EmergencyLoadingSkeleton(itemCount: 4),
-          ),
-          error: (error, stackTrace) => ErrorStateWidget(
-            errorMessage: 'Failed to load dashboard data. Please try again.',
-            onRetry: () {
-              ref.read(emergencyNotifierProvider.notifier).loadActiveEmergencies();
-              ref.read(emergencyNotifierProvider.notifier).loadMyRequests();
-            },
-          ),
-          data: (state) {
-            final active = state.activeEmergencies;
-            final myRequests = state.myRequests;
-
-            return CustomScrollView(
-              slivers: [
-                SliverPadding(
-                  padding: const EdgeInsets.all(AppSpacing.md),
-                  sliver: SliverList(
-                    delegate: SliverChildListDelegate([
-                      _buildQuickActions(context),
-                      const SizedBox(height: AppSpacing.lg),
-                      const SectionTitle(title: 'Statistics'),
-                      const SizedBox(height: AppSpacing.sm),
-                      _buildStatistics(active, myRequests),
-                      const SizedBox(height: AppSpacing.lg),
-                      const SectionTitle(title: 'Active Emergencies'),
-                      const SizedBox(height: AppSpacing.sm),
-                    ]),
-                  ),
+        child: CustomScrollView(
+          slivers: [
+            // Floating SliverAppBar (Greeting & Avatar)
+            SliverAppBar(
+              expandedHeight: 80,
+              floating: true,
+              pinned: true,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              flexibleSpace: FlexibleSpaceBar(
+                background: Container(
+                  color: isDark ? AppColors.backgroundDark.withOpacity(0.8) : AppColors.backgroundLight.withOpacity(0.8),
                 ),
-                active.isEmpty
-                    ? const SliverToBoxAdapter(
-                        child: EmergencyEmptyState(
-                          title: 'No Active Emergencies',
-                          subtitle: 'There are currently no active emergency blood requests in your area.',
-                        ),
-                      )
-                    : SliverPadding(
-                        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md),
-                        sliver: SliverList(
-                          delegate: SliverChildBuilderDelegate(
-                            (context, index) {
-                              final request = active[index];
-                              return EmergencySummaryCard(
-                                request: request,
-                                onTap: () => context.push('/emergencies/${request.id}'),
-                              );
-                            },
-                            childCount: active.length,
+                titlePadding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg, vertical: AppSpacing.sm),
+                title: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'Good morning,',
+                          style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
+                            color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
                           ),
                         ),
+                        Text(
+                          'Navin', // Hardcoded for demo, normally from AuthProvider
+                          style: AppTypography.getTextTheme(isDark: isDark).titleMedium,
+                        ),
+                      ],
+                    ),
+                    MedicalIconButton(
+                      icon: Icons.person_outline,
+                      hasBackground: true,
+                      isGlass: true,
+                      size: 40,
+                      onPressed: () {
+                        // Profile tap
+                      },
+                    ),
+                  ],
+                ),
+              ),
+            ),
+            
+            // State handling content
+            emergencyStateAsync.when(
+              loading: () => SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(AppSpacing.xl),
+                  child: Column(
+                    children: [
+                      SkeletonLoader(height: 160, borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
+                      const SizedBox(height: AppSpacing.lg),
+                      Row(
+                        children: [
+                          Expanded(child: SkeletonLoader(height: 80, borderRadius: BorderRadius.circular(AppSpacing.radiusLg))),
+                          const SizedBox(width: AppSpacing.md),
+                          Expanded(child: SkeletonLoader(height: 80, borderRadius: BorderRadius.circular(AppSpacing.radiusLg))),
+                        ],
                       ),
-                const SliverToBoxAdapter(child: SizedBox(height: AppSpacing.xxl)),
-              ],
-            );
-          },
+                      const SizedBox(height: AppSpacing.xl),
+                      SkeletonLoader(height: 120, borderRadius: BorderRadius.circular(AppSpacing.radiusLg)),
+                    ],
+                  ),
+                ),
+              ),
+              error: (error, stackTrace) => SliverToBoxAdapter(
+                child: ErrorStateWidget(
+                  message: 'Failed to load dashboard data. Please try again.',
+                  onRetry: () {
+                    ref.read(emergencyNotifierProvider.notifier).loadActiveEmergencies();
+                    ref.read(emergencyNotifierProvider.notifier).loadMyRequests();
+                  },
+                ),
+              ),
+              data: (state) {
+                final active = state.activeEmergencies;
+                final myRequests = state.myRequests;
+
+                return SliverList(
+                  delegate: SliverChildListDelegate([
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: AppSpacing.lg),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          const SizedBox(height: AppSpacing.md),
+                          
+                          // Hero Section (Request Blood CTA)
+                          _buildHeroSection(isDark, active.length),
+                          const SizedBox(height: AppSpacing.xl),
+                          
+                          // Quick Actions
+                          const SectionHeader(title: 'Quick Actions'),
+                          _buildQuickActions(context, isDark),
+                          const SizedBox(height: AppSpacing.xl),
+                          
+                          // Recent Activity / Active Emergencies
+                          const SectionHeader(title: 'Nearby Emergencies'),
+                          _buildActiveEmergenciesFeed(context, active),
+                          
+                          // Bottom Padding for FAB/NavBar clearance
+                          const SizedBox(height: 100),
+                        ],
+                      ),
+                    ),
+                  ]),
+                );
+              },
+            ),
+          ],
         ),
       ),
     );
   }
 
-  Widget _buildQuickActions(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
+  Widget _buildHeroSection(bool isDark, int activeCount) {
+    return SurfaceCard(
+      elevated: true,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Icon(
+                Icons.emergency,
+                color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
+                size: 32,
+              ),
+              if (activeCount > 0)
+                StatusChip(
+                  label: '$activeCount Active Near You',
+                  type: StatusType.error,
+                  icon: Icons.warning_amber_rounded,
+                )
+              else
+                const StatusChip(
+                  label: 'Area Secure',
+                  type: StatusType.success,
+                  icon: Icons.check_circle_outline,
+                ),
+            ],
+          ),
+          const SizedBox(height: AppSpacing.lg),
+          Text(
+            'Need Blood Urgently?',
+            style: AppTypography.getTextTheme(isDark: isDark).headlineSmall,
+          ),
+          const SizedBox(height: AppSpacing.xs),
+          Text(
+            'Create a request to alert donors in your immediate vicinity.',
+            style: AppTypography.getTextTheme(isDark: isDark).bodyMedium?.copyWith(
+              color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
+            ),
+          ),
+          const SizedBox(height: AppSpacing.xl),
+          PrimaryButton(
+            text: 'Request Blood Now',
+            icon: Icons.bloodtype,
+            onPressed: () => context.push('/emergencies/create'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildQuickActions(BuildContext context, bool isDark) {
+    return Row(
       children: [
-        const SectionTitle(title: 'Quick Actions'),
-        const SizedBox(height: AppSpacing.sm),
-        Row(
-          children: [
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.add_alert,
-                label: 'Create Request',
-                color: AppColors.primary,
-                onTap: () => context.push('/emergencies/create'),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.list_alt,
-                label: 'My Requests',
-                color: AppColors.secondary,
-                onTap: () => context.push('/emergencies/my-requests'),
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: _QuickActionButton(
-                icon: Icons.history,
-                label: 'History',
-                color: AppColors.warning,
-                onTap: () => context.push('/emergencies/history'),
-              ),
-            ),
-          ],
+        Expanded(
+          child: _QuickActionCard(
+            icon: Icons.list_alt_rounded,
+            label: 'My Requests',
+            isDark: isDark,
+            onTap: () => context.push('/emergencies/my-requests'),
+          ),
+        ),
+        const SizedBox(width: AppSpacing.md),
+        Expanded(
+          child: _QuickActionCard(
+            icon: Icons.history_rounded,
+            label: 'History',
+            isDark: isDark,
+            onTap: () => context.push('/emergencies/history'),
+          ),
         ),
       ],
     );
   }
 
-  Widget _buildStatistics(List<EmergencyRequestModel> active, List<EmergencyRequestModel> myRequests) {
-    // In a real app, these would come from a dedicated stats endpoint
-    final totalActive = active.length;
-    final totalCompleted = myRequests.where((r) => r.status == 'COMPLETED').length;
-    final totalCancelled = myRequests.where((r) => r.status == 'CANCELLED').length;
-    final totalRequests = myRequests.length;
+  Widget _buildActiveEmergenciesFeed(BuildContext context, List<EmergencyRequestModel> active) {
+    if (active.isEmpty) {
+      return const EmptyStateWidget(
+        title: 'No Active Emergencies',
+        message: 'There are currently no active emergency blood requests in your area.',
+        icon: Icons.health_and_safety_outlined,
+      );
+    }
 
     return Column(
-      children: [
-        Row(
+      children: active.map((request) {
+        return Padding(
+          padding: const EdgeInsets.only(bottom: AppSpacing.md),
+          // We wrap the existing EmergencySummaryCard inside our new soft design constraints
+          // Assuming EmergencySummaryCard hasn't been visually updated yet, 
+          // we might just render it directly for now, or wrap it.
+          // Since we shouldn't touch business logic in EmergencySummaryCard, we render it directly.
+          child: EmergencySummaryCard(
+            request: request,
+            onTap: () => context.push('/emergencies/${request.id}'),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
+  Widget _buildFloatingBottomNav(bool isDark) {
+    return Padding(
+      padding: const EdgeInsets.only(
+        left: AppSpacing.xl,
+        right: AppSpacing.xl,
+        bottom: AppSpacing.xl,
+      ),
+      child: GlassCard(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
+        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: [
-            Expanded(
-              child: EmergencyStatisticsCard(
-                title: 'Total Requests',
-                count: totalRequests,
-                icon: Icons.folder_open,
-                color: AppColors.secondary,
-              ),
+            _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, 'Home', isDark),
+            _buildNavItem(1, Icons.explore_rounded, Icons.explore_outlined, 'Map', isDark),
+            _buildNavItem(2, Icons.person_rounded, Icons.person_outline, 'Profile', isDark),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, bool isDark) {
+    final isSelected = _bottomNavIndex == index;
+    final color = isSelected 
+        ? (isDark ? AppColors.primaryDark : AppColors.primaryLight)
+        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight);
+
+    return GestureDetector(
+      onTap: () => setState(() => _bottomNavIndex = index),
+      behavior: HitTestBehavior.opaque,
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Icon(
+              isSelected ? activeIcon : inactiveIcon,
+              color: color,
+              size: 26,
             ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: EmergencyStatisticsCard(
-                title: 'Active',
-                count: totalActive,
-                icon: Icons.local_fire_department,
-                color: AppColors.primary,
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: AppTypography.getTextTheme(isDark: isDark).labelSmall?.copyWith(
+                color: color,
+                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
               ),
             ),
           ],
         ),
-        const SizedBox(height: AppSpacing.md),
-        Row(
-          children: [
-            Expanded(
-              child: EmergencyStatisticsCard(
-                title: 'Completed',
-                count: totalCompleted,
-                icon: Icons.check_circle_outline,
-                color: AppColors.success,
-              ),
-            ),
-            const SizedBox(width: AppSpacing.md),
-            Expanded(
-              child: EmergencyStatisticsCard(
-                title: 'Cancelled',
-                count: totalCancelled,
-                icon: Icons.cancel_outlined,
-                color: AppColors.error,
-              ),
-            ),
-          ],
-        ),
-      ],
+      ),
     );
   }
 }
 
-class _QuickActionButton extends StatelessWidget {
+class _QuickActionCard extends StatelessWidget {
   final IconData icon;
   final String label;
-  final Color color;
+  final bool isDark;
   final VoidCallback onTap;
 
-  const _QuickActionButton({
+  const _QuickActionCard({
     required this.icon,
     required this.label,
-    required this.color,
+    required this.isDark,
     required this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-
-    return Semantics(
-      button: true,
-      label: label,
-      child: Material(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: AppSpacing.borderRadiusMd,
-        elevation: 1,
-        child: InkWell(
-          onTap: onTap,
-          borderRadius: AppSpacing.borderRadiusMd,
-          child: Padding(
-            padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.xs),
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(icon, color: color, size: 28),
-                const SizedBox(height: AppSpacing.xs),
-                Text(
-                  label,
-                  textAlign: TextAlign.center,
-                  style: theme.textTheme.labelSmall?.copyWith(
-                    color: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+    return SurfaceCard(
+      elevated: false,
+      onTap: onTap,
+      padding: const EdgeInsets.symmetric(vertical: AppSpacing.md, horizontal: AppSpacing.sm),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(AppSpacing.sm),
+            decoration: BoxDecoration(
+              color: (isDark ? AppColors.secondaryDark : AppColors.secondaryLight).withOpacity(0.15),
+              shape: BoxShape.circle,
+            ),
+            child: Icon(
+              icon,
+              color: isDark ? AppColors.secondaryDark : AppColors.secondaryLight,
+              size: 24,
             ),
           ),
-        ),
+          const SizedBox(height: AppSpacing.sm),
+          Text(
+            label,
+            textAlign: TextAlign.center,
+            style: AppTypography.getTextTheme(isDark: isDark).labelLarge?.copyWith(
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        ],
       ),
     );
   }
