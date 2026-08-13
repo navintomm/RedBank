@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_animations.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_constants.dart';
-import '../theme/app_spacing.dart';
 
 class MedicalIconButton extends StatefulWidget {
   final IconData icon;

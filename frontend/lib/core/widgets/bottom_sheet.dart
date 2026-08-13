@@ -4,7 +4,6 @@ import '../theme/app_colors.dart';
 import '../theme/app_constants.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
-import 'glass_card.dart';
 
 Future<T?> showMedicalBottomSheet<T>({
   required BuildContext context,

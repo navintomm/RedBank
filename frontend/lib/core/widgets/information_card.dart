@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../theme/app_spacing.dart';
+import 'surface_card.dart';
 
 class InformationCard extends StatelessWidget {
   final String title;
@@ -15,28 +16,27 @@ class InformationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Card(
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.md),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Text(
-                  title,
-                  style: Theme.of(context).textTheme.titleMedium,
+    return SurfaceCard(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Text(
+                title,
+                style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  fontWeight: FontWeight.w600,
                 ),
-                if (action != null) action!,
-              ],
-            ),
-            const SizedBox(height: AppSpacing.sm),
-            const Divider(),
-            const SizedBox(height: AppSpacing.sm),
-            child,
-          ],
-        ),
+              ),
+              if (action != null) action!,
+            ],
+          ),
+          const SizedBox(height: AppSpacing.sm),
+          const Divider(),
+          const SizedBox(height: AppSpacing.sm),
+          child,
+        ],
       ),
     );
   }

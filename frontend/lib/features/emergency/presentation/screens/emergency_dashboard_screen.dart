@@ -7,7 +7,6 @@ import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/redbank_scaffold.dart';
 import '../../../../core/widgets/surface_card.dart';
-import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/primary_button.dart';
 import '../../../../core/widgets/icon_button.dart';
 import '../../../../core/widgets/error_state_widget.dart';
@@ -15,6 +14,10 @@ import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../../core/widgets/section_title.dart';
 import '../../../../core/widgets/status_chip.dart';
+import '../../../../core/widgets/global_bottom_nav.dart';
+import '../../../../core/services/notifications/notification_service.dart';
+import '../../../donor/presentation/donor_profile_screen.dart';
+import '../../../notifications/presentation/notifications_screen.dart';
 import '../../domain/emergency_models.dart';
 import '../../providers/emergency_provider.dart';
 import '../widgets/emergency_summary_card.dart';
@@ -27,8 +30,6 @@ class EmergencyDashboardScreen extends ConsumerStatefulWidget {
 }
 
 class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScreen> {
-  int _bottomNavIndex = 0;
-
   @override
   void initState() {
     super.initState();
@@ -42,11 +43,12 @@ class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScr
   @override
   Widget build(BuildContext context) {
     final emergencyStateAsync = ref.watch(emergencyNotifierProvider);
+    final notificationState = ref.watch(notificationProvider);
     final isDark = Theme.of(context).brightness == Brightness.dark;
 
     return RedBankScaffold(
       // Floating Bottom Navigation
-      bottomNavigationBar: _buildFloatingBottomNav(isDark),
+      bottomNavigationBar: const GlobalBottomNavBar(currentIndex: 0),
       body: RefreshIndicator(
         onRefresh: () async {
           await ref.read(emergencyNotifierProvider.notifier).loadActiveEmergencies();
@@ -85,14 +87,57 @@ class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScr
                         ),
                       ],
                     ),
-                    MedicalIconButton(
-                      icon: Icons.person_outline,
-                      hasBackground: true,
-                      isGlass: true,
-                      size: 40,
-                      onPressed: () {
-                        // Profile tap
-                      },
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Stack(
+                          children: [
+                            MedicalIconButton(
+                              icon: Icons.notifications_none_rounded,
+                              hasBackground: true,
+                              isGlass: true,
+                              size: 40,
+                              onPressed: () {
+                                Navigator.push(context, MaterialPageRoute(builder: (_) => const NotificationsScreen()));
+                              },
+                            ),
+                            if (notificationState.unreadCount > 0)
+                              Positioned(
+                                top: 0,
+                                right: 0,
+                                child: Container(
+                                  padding: const EdgeInsets.all(4),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.error,
+                                    shape: BoxShape.circle,
+                                    border: Border.all(
+                                      color: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+                                      width: 2,
+                                    ),
+                                  ),
+                                  child: Text(
+                                    notificationState.unreadCount.toString(),
+                                    style: AppTypography.getTextTheme(isDark: isDark).labelSmall?.copyWith(
+                                      color: Colors.white,
+                                      fontSize: 10,
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                          ],
+                        ),
+                        const SizedBox(width: AppSpacing.sm),
+                        MedicalIconButton(
+                          icon: Icons.person_outline,
+                          hasBackground: true,
+                          isGlass: true,
+                          size: 40,
+                          onPressed: () {
+                            Navigator.pushReplacement(context, MaterialPageRoute(builder: (_) => const DonorProfileScreen()));
+                          },
+                        ),
+                      ],
                     ),
                   ],
                 ),
@@ -132,7 +177,6 @@ class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScr
               ),
               data: (state) {
                 final active = state.activeEmergencies;
-                final myRequests = state.myRequests;
 
                 return SliverList(
                   delegate: SliverChildListDelegate([
@@ -270,61 +314,6 @@ class _EmergencyDashboardScreenState extends ConsumerState<EmergencyDashboardScr
           ),
         );
       }).toList(),
-    );
-  }
-
-  Widget _buildFloatingBottomNav(bool isDark) {
-    return Padding(
-      padding: const EdgeInsets.only(
-        left: AppSpacing.xl,
-        right: AppSpacing.xl,
-        bottom: AppSpacing.xl,
-      ),
-      child: GlassCard(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.xs),
-        borderRadius: BorderRadius.circular(AppSpacing.radiusPill),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceAround,
-          children: [
-            _buildNavItem(0, Icons.home_rounded, Icons.home_outlined, 'Home', isDark),
-            _buildNavItem(1, Icons.explore_rounded, Icons.explore_outlined, 'Map', isDark),
-            _buildNavItem(2, Icons.person_rounded, Icons.person_outline, 'Profile', isDark),
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _buildNavItem(int index, IconData activeIcon, IconData inactiveIcon, String label, bool isDark) {
-    final isSelected = _bottomNavIndex == index;
-    final color = isSelected 
-        ? (isDark ? AppColors.primaryDark : AppColors.primaryLight)
-        : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight);
-
-    return GestureDetector(
-      onTap: () => setState(() => _bottomNavIndex = index),
-      behavior: HitTestBehavior.opaque,
-      child: Padding(
-        padding: const EdgeInsets.symmetric(horizontal: AppSpacing.md, vertical: AppSpacing.sm),
-        child: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Icon(
-              isSelected ? activeIcon : inactiveIcon,
-              color: color,
-              size: 26,
-            ),
-            const SizedBox(height: 2),
-            Text(
-              label,
-              style: AppTypography.getTextTheme(isDark: isDark).labelSmall?.copyWith(
-                color: color,
-                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'app_colors.dart';
 import 'app_spacing.dart';
 import 'app_typography.dart';
-import 'app_shadows.dart'; // Unused in ThemeData directly, but part of the system
+// Unused in ThemeData directly, but part of the system
 
 class AppTheme {
   static ThemeData get lightTheme {

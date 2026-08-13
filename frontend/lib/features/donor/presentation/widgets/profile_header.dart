@@ -3,6 +3,8 @@ import '../../../../core/theme/app_spacing.dart';
 import 'blood_group_badge.dart';
 import 'availability_chip.dart';
 
+import '../../../../core/widgets/surface_card.dart';
+
 class ProfileHeader extends StatelessWidget {
   final String name;
   final String? profileImageUrl;
@@ -21,9 +23,11 @@ class ProfileHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        CircleAvatar(
+    return SurfaceCard(
+      elevated: true,
+      child: Row(
+        children: [
+          CircleAvatar(
           radius: 40,
           backgroundColor: Theme.of(context).colorScheme.surfaceContainerHighest,
           backgroundImage: profileImageUrl != null ? NetworkImage(profileImageUrl!) : null,
@@ -73,7 +77,8 @@ class ProfileHeader extends StatelessWidget {
             ],
           ),
         ),
-      ],
+        ],
+      ),
     );
   }
 }

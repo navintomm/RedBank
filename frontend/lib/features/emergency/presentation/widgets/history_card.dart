@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/surface_card.dart';
+import '../../../../core/widgets/status_chip.dart';
 import '../../domain/emergency_models.dart';
 
 class HistoryCard extends StatelessWidget {
@@ -18,7 +20,6 @@ class HistoryCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
-    final statusColor = _getStatusColor(request.status);
     final monthNames = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'];
     final amPm = request.createdAt.hour >= 12 ? 'PM' : 'AM';
     final hour12 = request.createdAt.hour == 0 ? 12 : (request.createdAt.hour > 12 ? request.createdAt.hour - 12 : request.createdAt.hour);
@@ -29,40 +30,17 @@ class HistoryCard extends StatelessWidget {
     return Semantics(
       label: 'Emergency request for ${request.hospitalName}, Status: ${request.status}',
       button: true,
-      child: InkWell(
+      child: SurfaceCard(
         onTap: onTap,
-        borderRadius: AppSpacing.borderRadiusMd,
-        child: Container(
-          padding: const EdgeInsets.all(AppSpacing.md),
-          decoration: BoxDecoration(
-            color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-            borderRadius: AppSpacing.borderRadiusMd,
-            border: Border.all(
-              color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
-            ),
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: statusColor.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(12),
-                      border: Border.all(color: statusColor),
-                    ),
-                    child: Text(
-                      request.status.replaceAll('_', ' '),
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        color: statusColor,
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                  ),
-                  Text(
+        padding: const EdgeInsets.all(AppSpacing.md),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                StatusChip(label: request.status),
+                Text(
                     '$formattedDate, $formattedTime',
                     style: theme.textTheme.bodySmall?.copyWith(
                       color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
@@ -110,21 +88,7 @@ class HistoryCard extends StatelessWidget {
             ],
           ),
         ),
-      ),
     );
   }
 
-  Color _getStatusColor(String status) {
-    switch (status.toUpperCase()) {
-      case 'COMPLETED':
-        return AppColors.success;
-      case 'CANCELLED':
-      case 'EXPIRED':
-      case 'FAILED':
-      case 'NO_SHOW':
-        return AppColors.error;
-      default:
-        return AppColors.info;
-    }
-  }
 }

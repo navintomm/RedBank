@@ -3,7 +3,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/information_card.dart';
+import '../../../../core/widgets/medical_text_field.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
 import '../domain/blood_group_helper.dart';
 import '../domain/donor_models.dart';
 import '../providers/donor_provider.dart';
@@ -25,6 +27,7 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
   late TextEditingController _districtController;
   late TextEditingController _cityController;
   late TextEditingController _medicalNotesController;
+  late TextEditingController _nameController;
 
   String? _selectedBloodGroup;
   String? _selectedGender;
@@ -46,6 +49,7 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
     _districtController = TextEditingController(text: profile?.district ?? '');
     _cityController = TextEditingController(text: profile?.city ?? '');
     _medicalNotesController = TextEditingController(text: profile?.medicalNotes ?? '');
+    _nameController = TextEditingController(text: 'Red Bank Hero');
 
     _selectedBloodGroup = profile?.bloodGroup;
     _selectedGender = profile?.gender;
@@ -72,6 +76,7 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
     _districtController.dispose();
     _cityController.dispose();
     _medicalNotesController.dispose();
+    _nameController.dispose();
     super.dispose();
   }
 
@@ -187,9 +192,11 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
           Navigator.of(context).pop();
         }
       },
-      child: Scaffold(
+      child: RedBankScaffold(
         appBar: AppBar(
           title: const Text('Edit Profile'),
+          backgroundColor: Colors.transparent,
+          elevation: 0,
         ),
         body: Form(
           key: _formKey,
@@ -202,13 +209,10 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
                   title: 'Basic Details',
                   child: Column(
                     children: [
-                      TextFormField(
-                        initialValue: 'Red Bank Hero',
-                        readOnly: true,
-                        decoration: const InputDecoration(
-                          labelText: 'Full Name',
-                          helperText: 'Name is managed in account settings',
-                        ),
+                      MedicalTextField(
+                        controller: _nameController,
+                        enabled: false,
+                        labelText: 'Full Name (Managed in account settings)',
                       ),
                       const SizedBox(height: AppSpacing.md),
                       DropdownButtonFormField<String>(
@@ -268,12 +272,10 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
                         },
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      TextFormField(
+                      MedicalTextField(
                         controller: _weightController,
                         keyboardType: const TextInputType.numberWithOptions(decimal: true),
-                        decoration: const InputDecoration(
-                          labelText: 'Weight (kg)',
-                        ),
+                        labelText: 'Weight (kg)',
                         validator: (value) {
                           if (value != null && value.isNotEmpty) {
                             final weight = double.tryParse(value);
@@ -292,25 +294,23 @@ class _EditDonorProfileScreenState extends ConsumerState<EditDonorProfileScreen>
                   title: 'Location & Medical',
                   child: Column(
                     children: [
-                      TextFormField(
+                      MedicalTextField(
                         controller: _cityController,
-                        decoration: const InputDecoration(labelText: 'City *'),
+                        labelText: 'City *',
                         validator: (value) => value == null || value.trim().isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      TextFormField(
+                      MedicalTextField(
                         controller: _districtController,
-                        decoration: const InputDecoration(labelText: 'District *'),
+                        labelText: 'District *',
                         validator: (value) => value == null || value.trim().isEmpty ? 'Required' : null,
                       ),
                       const SizedBox(height: AppSpacing.md),
-                      TextFormField(
+                      MedicalTextField(
                         controller: _medicalNotesController,
                         maxLines: 3,
-                        decoration: const InputDecoration(
-                          labelText: 'Medical Notes (Optional)',
-                          hintText: 'Any underlying conditions or medications...',
-                        ),
+                        labelText: 'Medical Notes (Optional)',
+                        hintText: 'Any underlying conditions or medications...',
                       ),
                     ],
                   ),

@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
 import '../../../../core/widgets/error_state_widget.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
+import '../../../../core/widgets/global_bottom_nav.dart';
 import '../../domain/emergency_models.dart';
 import '../../providers/emergency_provider.dart';
 
@@ -93,14 +94,14 @@ class _EmergencyHistoryScreenState extends ConsumerState<EmergencyHistoryScreen>
   @override
   Widget build(BuildContext context) {
     final stateAsync = ref.watch(emergencyNotifierProvider);
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
 
-    return Scaffold(
-      backgroundColor: isDark ? AppColors.backgroundDark : AppColors.backgroundLight,
+    return RedBankScaffold(
       appBar: AppBar(
         title: const Text('Emergency History'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
+      bottomNavigationBar: const GlobalBottomNavBar(currentIndex: 1),
       body: Column(
         children: [
           Padding(

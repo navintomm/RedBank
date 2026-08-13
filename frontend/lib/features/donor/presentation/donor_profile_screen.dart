@@ -6,9 +6,12 @@ import '../../../../core/widgets/empty_state_widget.dart';
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/information_card.dart';
 import '../../../../core/widgets/loading_skeleton.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
+import '../../../../core/widgets/global_bottom_nav.dart';
 import '../domain/donor_models.dart';
 import '../providers/donor_provider.dart';
 import 'edit_donor_profile_screen.dart';
+import 'settings_screen.dart';
 import 'widgets/profile_header.dart';
 
 class DonorProfileScreen extends ConsumerWidget {
@@ -18,10 +21,22 @@ class DonorProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final donorState = ref.watch(donorProfileProvider);
 
-    return Scaffold(
+    return RedBankScaffold(
       appBar: AppBar(
         title: const Text('Donor Profile'),
-          actions: [
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        actions: [
+          IconButton(
+            icon: const Icon(Icons.settings_outlined),
+            tooltip: 'Settings',
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (_) => const SettingsScreen()),
+              );
+            },
+          ),
           IconButton(
             icon: const Icon(Icons.edit),
             tooltip: 'Edit Profile',
@@ -34,6 +49,7 @@ class DonorProfileScreen extends ConsumerWidget {
           ),
         ],
       ),
+      bottomNavigationBar: const GlobalBottomNavBar(currentIndex: 2),
       body: RefreshIndicator(
         onRefresh: () async {
           // Invalidate the provider to force a refresh

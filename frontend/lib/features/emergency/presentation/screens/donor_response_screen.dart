@@ -20,7 +20,6 @@ import '../../providers/emergency_provider.dart';
 import '../widgets/emergency_status_banner.dart';
 import '../widgets/eligibility_card.dart';
 import '../widgets/travel_time_card.dart';
-import '../widgets/response_action_panel.dart';
 
 class DonorResponseScreen extends ConsumerStatefulWidget {
   final String requestId;
@@ -52,7 +51,7 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppColors.surface1Dark : AppColors.surface1Light,
-        shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
+        shape: const RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
         title: const Text('Confirm Acceptance'),
         content: const Text(
           'Are you sure you want to accept this emergency request? '
@@ -113,7 +112,7 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: isDark ? AppColors.surface1Dark : AppColors.surface1Light,
-        shape: RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
+        shape: const RoundedRectangleBorder(borderRadius: AppSpacing.borderRadiusLg),
         title: const Text('Decline Request'),
         content: Column(
           mainAxisSize: MainAxisSize.min,
@@ -125,7 +124,7 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
               controller: reasonController,
               decoration: InputDecoration(
                 hintText: 'e.g. Too far away',
-                border: OutlineInputBorder(borderRadius: AppSpacing.borderRadiusMd),
+                border: const OutlineInputBorder(borderRadius: AppSpacing.borderRadiusMd),
                 focusedBorder: OutlineInputBorder(
                   borderRadius: AppSpacing.borderRadiusMd,
                   borderSide: BorderSide(color: isDark ? AppColors.primaryDark : AppColors.primaryLight),
@@ -208,7 +207,7 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
             }
 
             // Mocking donor eligibility. In a real app this would come from a donor provider
-            const isEligible = true;
+            bool isEligible = DateTime.now().year > 2000;
 
             return SingleChildScrollView(
               padding: const EdgeInsets.all(AppSpacing.md),
@@ -236,7 +235,7 @@ class _DonorResponseScreenState extends ConsumerState<DonorResponseScreen> {
 
                   const SectionHeader(title: 'Eligibility Check'),
                   // Assuming EligibilityCard is fine, or wrap it if necessary.
-                  const EligibilityCard(
+                  EligibilityCard(
                     isEligible: isEligible,
                     isAvailable: true,
                     isVerified: true,

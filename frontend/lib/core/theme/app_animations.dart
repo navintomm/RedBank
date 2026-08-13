@@ -1,5 +1,4 @@
 import 'package:flutter/animation.dart';
-import 'package:flutter/physics.dart';
 
 class AppAnimations {
   // Durations
@@ -12,7 +11,7 @@ class AppAnimations {
   static const Curve easeInOut = Curves.easeInOut;
   
   // Spring Simulation for Micro-interactions (e.g. Button Press Scale)
-  static final SpringDescription defaultSpring = SpringDescription(
+  static const SpringDescription defaultSpring = SpringDescription(
     mass: 1.0,
     stiffness: 300.0,
     damping: 20.0,

@@ -7,6 +7,7 @@ import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/information_card.dart';
 import '../../../../core/widgets/loading_skeleton.dart';
 import '../../../../core/widgets/primary_button.dart';
+import '../../../../core/widgets/redbank_scaffold.dart';
 import '../providers/donor_provider.dart';
 import 'widgets/availability_status_card.dart';
 
@@ -90,9 +91,11 @@ class _AvailabilitySettingsScreenState extends ConsumerState<AvailabilitySetting
   Widget build(BuildContext context) {
     final donorState = ref.watch(donorProfileProvider);
 
-    return Scaffold(
+    return RedBankScaffold(
       appBar: AppBar(
         title: const Text('Availability Settings'),
+        backgroundColor: Colors.transparent,
+        elevation: 0,
       ),
       body: donorState.when(
         data: (profile) {

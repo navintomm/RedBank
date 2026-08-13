@@ -11,13 +11,16 @@ import '../../../../core/services/live_tracking_service.dart';
 import '../../../../core/services/map_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/maps/map_loading_widget.dart';
 import '../../../../core/widgets/redbank_scaffold.dart';
-import '../../../../core/widgets/glass_card.dart';
 import '../../../../core/widgets/icon_button.dart';
 import '../../../../core/widgets/primary_button.dart';
+
+import '../widgets/tracking_summary_card.dart';
+import '../widgets/tracking_bottom_panel.dart';
+import '../widgets/quick_action_button.dart';
 
 class DonorNavigationScreen extends ConsumerStatefulWidget {
   final EmergencyRequestModel emergency;
@@ -254,11 +257,13 @@ class _DonorNavigationScreenState extends ConsumerState<DonorNavigationScreen> {
               ),
 
               // 4. Bottom Navigation Panel
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _buildNavigationPanel(trackingState, isDark),
+              DraggableScrollableSheet(
+                initialChildSize: 0.35,
+                minChildSize: 0.25,
+                maxChildSize: 0.75,
+                builder: (context, scrollController) {
+                  return _buildNavigationPanel(trackingState, isDark, scrollController);
+                },
               ),
             ],
           );
@@ -273,151 +278,55 @@ class _DonorNavigationScreenState extends ConsumerState<DonorNavigationScreen> {
   }
 
   Widget _buildTopOverlay(TrackingState state, bool isDark) {
-    return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-      child: Row(
-        children: [
-          MedicalIconButton(
-            icon: Icons.arrow_back,
-            isGlass: false,
-            hasBackground: false,
-            onPressed: () => context.pop(),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Navigation',
-                  style: AppTypography.getTextTheme(isDark: isDark).titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  'To ${widget.emergency.hospitalName}',
-                  style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-        ],
-      ),
+    return TrackingSummaryCard(
+      emergency: widget.emergency,
+      title: 'Navigation',
     );
   }
 
-  Widget _buildNavigationPanel(TrackingState state, bool isDark) {
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Grabber handle for aesthetics
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: AppSpacing.xl),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
+  Widget _buildNavigationPanel(TrackingState state, bool isDark, ScrollController scrollController) {
+    String statusMessage = 'Navigating to hospital';
+    Color statusColor = isDark ? AppColors.primaryDark : AppColors.primaryLight;
 
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Distance',
-                        style: AppTypography.getTextTheme(isDark: isDark).labelMedium?.copyWith(
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _distanceRemaining > 1000 
-                            ? '${(_distanceRemaining / 1000).toStringAsFixed(1)} km'
-                            : '${_distanceRemaining.toStringAsFixed(0)} m',
-                        style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'ETA',
-                        style: AppTypography.getTextTheme(isDark: isDark).labelMedium?.copyWith(
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _eta,
-                        style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              
-              PrimaryButton(
-                text: 'I HAVE ARRIVED',
-                icon: Icons.local_hospital_outlined,
-                onPressed: _isArriving ? null : _handleManualArrive,
-                isLoading: _isArriving,
-              ),
-              
-              const SizedBox(height: AppSpacing.md),
-              
-              OutlinedButton.icon(
-                icon: const Icon(Icons.phone_outlined),
-                label: const Text('Call Hospital'),
-                onPressed: () {
-                  // In a real app, this would use url_launcher
-                },
-                style: OutlinedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                  side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
-                  foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                ),
-              ),
-            ],
-          ),
-        ),
+    bool isStale = false;
+    if (state.currentDonorLocation != null) {
+      final secondsSinceUpdate = DateTime.now().difference(state.currentDonorLocation!.timestamp.toLocal()).inSeconds;
+      if (secondsSinceUpdate > 120) {
+        isStale = true;
+      }
+    }
+
+    if (state.status == 'DONOR_TRAVELLING') {
+      if (isStale) {
+        statusMessage = 'Location stale (poor signal)';
+        statusColor = AppColors.warning;
+      }
+    } else if (state.status == 'ARRIVED') {
+      statusMessage = 'You have arrived';
+      statusColor = AppColors.success;
+    }
+
+    return TrackingBottomPanel(
+      state: state,
+      distanceRemaining: _distanceRemaining,
+      eta: _eta,
+      statusMessage: statusMessage,
+      statusColor: statusColor,
+      isStale: isStale,
+      scrollController: scrollController,
+      primaryButton: PrimaryButton(
+        text: 'I HAVE ARRIVED',
+        icon: Icons.local_hospital_outlined,
+        onPressed: _isArriving ? null : _handleManualArrive,
+        isLoading: _isArriving,
       ),
+      actionButtons: [
+        QuickActionButton(
+          icon: Icons.phone_outlined,
+          label: 'Call Hospital',
+          onPressed: () {},
+        ),
+      ],
     );
   }
 }

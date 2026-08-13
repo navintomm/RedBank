@@ -97,7 +97,7 @@ class _OtpInputState extends State<OtpInput> {
             maxLength: 1,
             style: AppTypography.getTextTheme(isDark: isDark).headlineMedium,
             decoration: InputDecoration(
-              counterText: "",
+              counterText: '',
               filled: true,
               fillColor: isDark ? AppColors.surface2Dark : AppColors.surface2Light,
               border: OutlineInputBorder(

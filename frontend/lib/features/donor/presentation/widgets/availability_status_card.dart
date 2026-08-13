@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_spacing.dart';
+import '../../../../core/widgets/surface_card.dart';
 import 'availability_chip.dart';
 
 class AvailabilityStatusCard extends StatelessWidget {
@@ -40,16 +41,10 @@ class AvailabilityStatusCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final statusColor = _getStatusColor(context);
 
-    return Card(
-      elevation: 0,
-      color: Theme.of(context).colorScheme.surfaceContainerHighest.withOpacity(0.5),
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(AppSpacing.radiusMd),
-        side: BorderSide(color: statusColor.withOpacity(0.5)),
-      ),
-      child: Padding(
-        padding: const EdgeInsets.all(AppSpacing.lg),
-        child: Column(
+    return SurfaceCard(
+      elevated: true,
+      padding: const EdgeInsets.all(AppSpacing.lg),
+      child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Row(
@@ -78,7 +73,6 @@ class AvailabilityStatusCard extends StatelessWidget {
             ),
           ],
         ),
-      ),
     );
   }
 }

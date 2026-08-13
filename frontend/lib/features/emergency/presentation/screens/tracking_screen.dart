@@ -3,21 +3,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:google_maps_flutter/google_maps_flutter.dart';
 import 'package:geolocator/geolocator.dart';
-import 'package:go_router/go_router.dart';
+
 
 import '../../domain/emergency_models.dart';
 import '../../providers/tracking_provider.dart';
 import '../../../../core/services/map_service.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_spacing.dart';
-import '../../../../core/theme/app_typography.dart';
+
 import '../../../../core/widgets/error_state_widget.dart';
 import '../../../../core/widgets/maps/map_loading_widget.dart';
 import '../../../../core/widgets/redbank_scaffold.dart';
-import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/glass_card.dart';
-import '../../../../core/widgets/icon_button.dart';
-import '../widgets/emergency_timeline.dart';
+
+import '../widgets/tracking_summary_card.dart';
+import '../widgets/tracking_bottom_panel.dart';
+import '../widgets/quick_action_button.dart';
 
 class TrackingScreen extends ConsumerStatefulWidget {
   final EmergencyRequestModel emergency;
@@ -197,11 +197,13 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
               ),
 
               // 3. Bottom Tracking Panel
-              Positioned(
-                bottom: 0,
-                left: 0,
-                right: 0,
-                child: _buildTrackingPanel(trackingState, isDark),
+              DraggableScrollableSheet(
+                initialChildSize: 0.35,
+                minChildSize: 0.25,
+                maxChildSize: 0.75,
+                builder: (context, scrollController) {
+                  return _buildTrackingPanel(trackingState, isDark, scrollController);
+                },
               ),
             ],
           );
@@ -216,63 +218,23 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
   }
 
   Widget _buildTopOverlay(TrackingState state, bool isDark) {
-    return GlassCard(
-      padding: const EdgeInsets.all(AppSpacing.sm),
-      borderRadius: BorderRadius.circular(AppSpacing.radiusXl),
-      child: Row(
-        children: [
-          MedicalIconButton(
-            icon: Icons.arrow_back,
-            isGlass: false,
-            hasBackground: false,
-            onPressed: () => context.pop(),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'Live Tracking',
-                  style: AppTypography.getTextTheme(isDark: isDark).titleMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-                Text(
-                  widget.emergency.hospitalName,
-                  style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
-                    color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ],
-            ),
-          ),
-          const SizedBox(width: AppSpacing.sm),
-          // Refresh/re-center button
-          MedicalIconButton(
-            icon: Icons.my_location,
-            isGlass: false,
-            hasBackground: true,
-            onPressed: () {
-              if (state.currentDonorLocation != null) {
-                final donorPos = LatLng(
-                  state.currentDonorLocation!.latitude,
-                  state.currentDonorLocation!.longitude,
-                );
-                final hospitalPos = LatLng(widget.emergency.latitude, widget.emergency.longitude);
-                _animateCamera(donorPos, hospitalPos);
-              }
-            },
-          ),
-        ],
-      ),
+    return TrackingSummaryCard(
+      emergency: widget.emergency,
+      title: 'Live Tracking',
+      onRefresh: () {
+        if (state.currentDonorLocation != null) {
+          final donorPos = LatLng(
+            state.currentDonorLocation!.latitude,
+            state.currentDonorLocation!.longitude,
+          );
+          final hospitalPos = LatLng(widget.emergency.latitude, widget.emergency.longitude);
+          _animateCamera(donorPos, hospitalPos);
+        }
+      },
     );
   }
 
-  Widget _buildTrackingPanel(TrackingState state, bool isDark) {
+  Widget _buildTrackingPanel(TrackingState state, bool isDark, ScrollController scrollController) {
     String statusMessage = 'Waiting for donor';
     Color statusColor = isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight;
 
@@ -309,163 +271,26 @@ class _TrackingScreenState extends ConsumerState<TrackingScreen> {
       statusColor = AppColors.error;
     }
 
-    return Container(
-      decoration: BoxDecoration(
-        color: isDark ? AppColors.surfaceDark : AppColors.surfaceLight,
-        borderRadius: const BorderRadius.vertical(top: Radius.circular(AppSpacing.radiusXl)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withOpacity(isDark ? 0.3 : 0.05),
-            blurRadius: 20,
-            offset: const Offset(0, -5),
-          ),
-        ],
-      ),
-      child: SafeArea(
-        top: false,
-        child: Padding(
-          padding: const EdgeInsets.all(AppSpacing.xl),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            children: [
-              // Grabber handle for aesthetics
-              Center(
-                child: Container(
-                  width: 40,
-                  height: 4,
-                  margin: const EdgeInsets.only(bottom: AppSpacing.xl),
-                  decoration: BoxDecoration(
-                    color: isDark ? AppColors.dividerDark : AppColors.dividerLight,
-                    borderRadius: BorderRadius.circular(2),
-                  ),
-                ),
-              ),
-
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        'Distance',
-                        style: AppTypography.getTextTheme(isDark: isDark).labelMedium?.copyWith(
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _distanceRemaining > 1000 
-                            ? '${(_distanceRemaining / 1000).toStringAsFixed(1)} km'
-                            : '${_distanceRemaining.toStringAsFixed(0)} m',
-                        style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                        ),
-                      ),
-                    ],
-                  ),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      Text(
-                        'ETA',
-                        style: AppTypography.getTextTheme(isDark: isDark).labelMedium?.copyWith(
-                          color: isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight,
-                        ),
-                      ),
-                      const SizedBox(height: 4),
-                      Text(
-                        _eta,
-                        style: AppTypography.getTextTheme(isDark: isDark).headlineMedium?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: isDark ? AppColors.primaryDark : AppColors.primaryLight,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              
-              EmergencyTimeline(currentStatus: state.status),
-              
-              const SizedBox(height: AppSpacing.lg),
-              const Divider(),
-              const SizedBox(height: AppSpacing.md),
-              
-              Row(
-                children: [
-                  Container(
-                    width: 12,
-                    height: 12,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: statusColor,
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.sm),
-                  Expanded(
-                    child: Text(
-                      statusMessage,
-                      style: AppTypography.getTextTheme(isDark: isDark).bodyMedium?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                    ),
-                  ),
-                  if (state.currentDonorLocation != null && state.status == 'DONOR_TRAVELLING')
-                    Text(
-                      'Updated ${DateTime.now().difference(state.currentDonorLocation!.timestamp.toLocal()).inSeconds}s ago',
-                      style: AppTypography.getTextTheme(isDark: isDark).bodySmall?.copyWith(
-                        color: isStale ? AppColors.warning : (isDark ? AppColors.textSecondaryDark : AppColors.textSecondaryLight),
-                      ),
-                    ),
-                ],
-              ),
-              const SizedBox(height: AppSpacing.lg),
-              
-              // Quick Actions
-              Row(
-                children: [
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.phone_outlined),
-                      label: const Text('Call Donor'),
-                      onPressed: () {
-                        // In a real app, this would use url_launcher
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
-                        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(width: AppSpacing.md),
-                  Expanded(
-                    child: OutlinedButton.icon(
-                      icon: const Icon(Icons.share_outlined),
-                      label: const Text('Share Tracking'),
-                      onPressed: () {
-                        // In a real app, this would use share_plus
-                      },
-                      style: OutlinedButton.styleFrom(
-                        padding: const EdgeInsets.symmetric(vertical: AppSpacing.md),
-                        side: BorderSide(color: isDark ? AppColors.dividerDark : AppColors.dividerLight),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(AppSpacing.radiusMd)),
-                        foregroundColor: isDark ? AppColors.textPrimaryDark : AppColors.textPrimaryLight,
-                      ),
-                    ),
-                  ),
-                ],
-              ),
-            ],
-          ),
+    return TrackingBottomPanel(
+      state: state,
+      distanceRemaining: _distanceRemaining,
+      eta: _eta,
+      statusMessage: statusMessage,
+      statusColor: statusColor,
+      isStale: isStale,
+      scrollController: scrollController,
+      actionButtons: [
+        QuickActionButton(
+          icon: Icons.phone_outlined,
+          label: 'Call Donor',
+          onPressed: () {},
         ),
-      ),
+        QuickActionButton(
+          icon: Icons.share_outlined,
+          label: 'Share Tracking',
+          onPressed: () {},
+        ),
+      ],
     );
   }
 }
